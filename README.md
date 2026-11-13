@@ -7,3 +7,5 @@ for use of openFDA drug labels and explore the associated
 active ingredients.
 
 Data source: https://open.fda.gov/apis/drug/label/
+
+Andrea D'Ascanio Giulia Castelli Giovanni Margiacchi Federico Davolos Alessandro D'Amore
