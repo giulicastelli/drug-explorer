@@ -1,0 +1,12 @@
+# The build context is the repo root: keep data, secrets and git history out of every image
+.git/
+.env
+data/
+measure/
+docs/
+slides/
+venv/
+.venv/
+**/__pycache__/
+**/*.pyc
+*.md

@@ -1,0 +1,11 @@
+# Never commit these files
+.env
+data/*
+!data/.gitkeep
+venv/
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+# measurement scratch (the results CSV and charts ARE committed)
+measure/results/tmp/
