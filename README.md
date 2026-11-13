@@ -1,8 +1,9 @@
 # Drug Explorer
 
-Progetto del corso Computing Infrastructure.
+A project for the Computing Infrastructure course.
 
-Il sistema permette di cercare un termine nelle indicazioni
-d’uso delle schede openFDA e consultare i principi attivi associati.
+The system lets users search for a term in the indications
+for use of openFDA drug labels and explore the associated
+active ingredients.
 
-Fonte dati: https://open.fda.gov/apis/drug/label/
+Data source: https://open.fda.gov/apis/drug/label/
