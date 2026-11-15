@@ -1,6 +1,6 @@
 # Drug Explorer
 
-A project for the Computing Infrastructure course.
+A project for the Computational Infrastructures for Data Science course.
 
 The system lets users search for a term in the indications
 for use of openFDA drug labels and explore the associated
