@@ -1,0 +1,48 @@
+# One command starts everything: docker compose up
+services:
+
+  db:
+    image: postgres:16                 # ready-made PostgreSQL image, we do not build it
+    env_file: .env                     # POSTGRES_DB / POSTGRES_USER / POSTGRES_PASSWORD
+    volumes:
+      - dbdata:/var/lib/postgresql/data   # named volume: the data survives "docker compose down"
+    healthcheck:                       # the others wait until the database accepts connections
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    # no "ports": only the dashboard is opened to the laptop
+
+  loader:
+    build:
+      context: .                       # the repo root, so the image can include sql/
+      dockerfile: loader/Dockerfile
+    env_file: .env
+    environment:                       # run settings: defaults here, override from the shell
+      SAMPLE_FRACTION: ${SAMPLE_FRACTION:-1.0}   # share of the labels to load: 0.25 / 0.5 / 1.0
+      CREATE_INDEX: ${CREATE_INDEX:-1}           # 1 = build the GIN index after loading
+      TSV_MODE: ${TSV_MODE:-generated}           # when the word list (tsvector) is computed
+      RUN_ID: ${RUN_ID:-}                        # label for the timing table; empty = automatic
+      EXTRACT_CACHE: ${EXTRACT_CACHE:-1}         # 1 = reuse the cleaned extract in data/clean
+      ATLAS_MIN_LABELS: ${ATLAS_MIN_LABELS:-5}   # ingredients with at least this many labels get a dot on the atlas
+      DATA_DIR: /data
+    volumes:
+      - ./data:/data                   # downloaded zips in data/raw, cleaned extract in data/clean
+    depends_on:
+      db:
+        condition: service_healthy     # start only when the database is ready
+    # runs once: download, clean, load, index, then exits with code 0
+
+  app:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    env_file: .env
+    ports:
+      - "${APP_PORT:-8501}:8501"       # the only open port: http://localhost:8501
+    depends_on:
+      loader:
+        condition: service_completed_successfully   # the page starts only after a successful load
+
+volumes:
+  dbdata:
