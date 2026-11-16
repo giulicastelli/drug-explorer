@@ -1,0 +1,8 @@
+# Lock file: every package in the loader image, with its exact version (direct and indirect).
+# Made with: docker run --rm --entrypoint pip <loader image> freeze (image built from python:3.12-slim and loader/requirements.txt).
+# Used in loader/Dockerfile: pip install -r requirements.txt -c constraints.txt
+# To update: change requirements.txt, build once without -c, run pip freeze again.
+ijson==3.6.0
+psycopg==3.3.6
+psycopg-binary==3.3.6
+typing_extensions==4.16.0
