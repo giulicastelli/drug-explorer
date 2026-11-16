@@ -8,7 +8,6 @@ RUN pip install --no-cache-dir -r requirements.txt -c constraints.txt
 RUN useradd --uid 1000 --create-home app
 COPY sql/queries.sql ./sql/queries.sql
 COPY app/*.py ./
-COPY app/.streamlit/ ./.streamlit/
 # Make the copied files readable by the non-root user, whatever their permissions on the laptop.
 RUN chmod -R a+rX /app
 USER app
