@@ -1,0 +1,101 @@
+# v3 extract key: the extract name carries clean_version (md5 of the row rules), so a changed clean() means a new parse. <tmp> = a temporary folder under the session scratchpad (.../scratchpad/v3/key, owner 1000). data/raw is mounted READ-ONLY at /t/raw; only <tmp>/clean is written. SAMPLE_FRACTION=0.25, database of de-v3
+# 2026-11-05 19:42:25 UTC, branch fix-round2-findings at b5ecc7c plus this commit's change (uncommitted while the test ran), compose project de-v3 (APP_PORT=8581), machine: docs/environment.md
+
+Test change of a cleaning rule (both files are copies, never committed): the generic-name fallback of clean() removed,
+in the main code (<tmp>/../old_changed.py) and in this branch's code (<tmp>/../new_changed.py):
+$ diff <(git show main:loader/load_fda.py) old_changed.py
+211,214c211
+<     if not names:                         # no substance name: fall back to the generic name
+<         names = sorted({norm(x) for x in of.get("generic_name", [])})
+<         if names:
+<             counts["name_from_generic_name"] += 1
+---
+>     # TEST ONLY (v3_extract_key.txt): the generic-name fallback removed, a changed cleaning rule
+
+$ ls -l --time-style=+%H:%M:%S <tmp>/clean
+total 72648
+-rw-r--r-- 1 ubuntu ubuntu 74388073 19:42:04 labels_2026-11-05.csv
+[exit code 0; wall time 0.0 s]
+
+== k0, BEFORE (main b5ecc7c, image de-v3-loader:before): the changed rule, but the old extract labels_2026-11-05.csv is read
+$ docker run --rm --network de-v3_default --env-file .env -e DB_HOST=db -e DATA_DIR=/t -e SAMPLE_FRACTION=0.25 -e RUN_ID=v3-k0-main-changed-rule -v $PWD/data/raw:/t/raw:ro -v <tmp>/clean:/t/clean -v <tmp>/../old_changed.py:/app/load_fda.py:ro de-v3-loader:before   (image built from main b5ecc7c; same line filter)
+[loader v3-k0-main-changed-rule] settings: sample_fraction=0.25 buckets=[0] create_index=True tsv_mode=generated data_dir=/t/raw db_host=db ijson_backend=yajl2_c
+[loader v3-k0-main-changed-rule] export_date 2026-11-05: 14 files, 262,907 labels
+[loader v3-k0-main-changed-rule] read_extract counts: rows_in_extract=78472 kept=19546 outside_sample=58926 loader_peak_rss_mb=73 path=read_extract labels_2026-11-05.csv
+[loader v3-k0-main-changed-rule] rows loaded: 19,546; drugs: 3,554; effective dates 2010-05-12 to 2026-11-01; pipeline 4.4 s (download excluded)
+[exit code 0; wall time 5.2 s]
+
+Reading: main loads the rows of the OLD rules (kept=19546 at 25%, the same as with the fallback) although clean() changed: the stale extract is reused silently.
+
+== k1, AFTER (this branch): the same old extract in <tmp>/clean; the code unchanged
+$ docker compose -p de-v3 run --rm -v $PWD/data/raw:/t/raw:ro -v <tmp>/clean:/t/clean -e DATA_DIR=/t -e SAMPLE_FRACTION=0.25 -e RUN_ID=v3-k1-new-code loader   (lines without 'already downloaded', per-file parse lines and per-step times)
+ Container de-v3-db-1 Running 
+ Container de-v3-db-1 Waiting 
+ Container de-v3-db-1 Healthy 
+ Container de-v3-loader-run-9260556ec366 Creating 
+ Container de-v3-loader-run-9260556ec366 Created 
+[loader v3-k1-new-code] settings: sample_fraction=0.25 buckets=[0] create_index=True tsv_mode=generated clean_version=e2adc54e data_dir=/t/raw db_host=db ijson_backend=yajl2_c
+[loader v3-k1-new-code] export_date 2026-11-05: 14 files, 262,907 labels
+[loader v3-k1-new-code] data/clean also holds labels_2026-11-05.csv (another export or other clean rules): not used; delete to free the disk
+[loader v3-k1-new-code] parse counts: read=262907 kept=19546 dropped_no_indications=11921 dropped_no_name=172514 duplicate_set_id=0 name_from_generic_name=1476 bad_effective_time=1 outside_sample=58926 loader_peak_rss_mb=178 path=parse, extract written labels_2026-11-05_e2adc54e.csv
+[loader v3-k1-new-code] rows loaded: 19,546; drugs: 3,554; effective dates 2010-05-12 to 2026-11-01; pipeline 69.4 s (download excluded)
+[exit code 0; wall time 71.1 s]
+
+$ ls -l --time-style=+%H:%M:%S <tmp>/clean
+total 145296
+-rw-r--r-- 1 ubuntu ubuntu 74388073 19:42:04 labels_2026-11-05.csv
+-rw-r--r-- 1 ubuntu ubuntu 74388073 19:43:37 labels_2026-11-05_e2adc54e.csv
+[exit code 0; wall time 0.0 s]
+
+$ cmp <tmp>/clean/labels_2026-11-05.csv <tmp>/clean/labels_2026-11-05_e2adc54e.csv
+[exit code 0; wall time 0.1 s]
+
+Reading: the unversioned extract of v2 is not read; the zips are parsed and labels_2026-11-05_<clean_version>.csv is written. It is byte-identical to the v2 extract, as expected: the rules did not change between v2 and this branch, only the name.
+
+== k2, AFTER: a later start, same code: the versioned extract is read
+$ docker compose -p de-v3 run --rm -v $PWD/data/raw:/t/raw:ro -v <tmp>/clean:/t/clean -e DATA_DIR=/t -e SAMPLE_FRACTION=0.25 -e RUN_ID=v3-k2-later-start loader   (lines without 'already downloaded', per-file parse lines and per-step times)
+ Container de-v3-db-1 Running 
+ Container de-v3-db-1 Waiting 
+ Container de-v3-db-1 Healthy 
+ Container de-v3-loader-run-45cc2137e9d0 Creating 
+ Container de-v3-loader-run-45cc2137e9d0 Created 
+[loader v3-k2-later-start] settings: sample_fraction=0.25 buckets=[0] create_index=True tsv_mode=generated clean_version=e2adc54e data_dir=/t/raw db_host=db ijson_backend=yajl2_c
+[loader v3-k2-later-start] export_date 2026-11-05: 14 files, 262,907 labels
+[loader v3-k2-later-start] read_extract counts: rows_in_extract=78472 kept=19546 outside_sample=58926 loader_peak_rss_mb=73 path=read_extract labels_2026-11-05_e2adc54e.csv
+[loader v3-k2-later-start] rows loaded: 19,546; drugs: 3,554; effective dates 2010-05-12 to 2026-11-01; pipeline 5.6 s (download excluded)
+[exit code 0; wall time 7.5 s]
+
+== k3, AFTER: the changed rule (new_changed.py mounted over /app/load_fda.py): another clean_version, so a parse
+$ docker compose -p de-v3 run --rm -v $PWD/data/raw:/t/raw:ro -v <tmp>/clean:/t/clean -e DATA_DIR=/t -e SAMPLE_FRACTION=0.25 -e RUN_ID=v3-k3-changed-rule -v <tmp>/../new_changed.py:/app/load_fda.py:ro loader   (lines without 'already downloaded', per-file parse lines and per-step times)
+ Container de-v3-db-1 Running 
+ Container de-v3-db-1 Waiting 
+ Container de-v3-db-1 Healthy 
+ Container de-v3-loader-run-8af8af94a7d5 Creating 
+ Container de-v3-loader-run-8af8af94a7d5 Created 
+[loader v3-k3-changed-rule] settings: sample_fraction=0.25 buckets=[0] create_index=True tsv_mode=generated clean_version=4805b507 data_dir=/t/raw db_host=db ijson_backend=yajl2_c
+[loader v3-k3-changed-rule] export_date 2026-11-05: 14 files, 262,907 labels
+[loader v3-k3-changed-rule] data/clean also holds labels_2026-11-05.csv, labels_2026-11-05_e2adc54e.csv (another export or other clean rules): not used; delete to free the disk
+[loader v3-k3-changed-rule] parse counts: read=262907 kept=19202 dropped_no_indications=11921 dropped_no_name=173990 duplicate_set_id=0 name_from_generic_name=0 bad_effective_time=1 outside_sample=57794 loader_peak_rss_mb=176 path=parse, extract written labels_2026-11-05_4805b507.csv
+[loader v3-k3-changed-rule] rows loaded: 19,202; drugs: 3,377; effective dates 2010-10-04 to 2026-11-01; pipeline 65.7 s (download excluded)
+[exit code 0; wall time 67.7 s]
+
+$ ls -l --time-style=+%H:%M:%S <tmp>/clean
+total 216376
+-rw-r--r-- 1 ubuntu ubuntu 74388073 19:42:04 labels_2026-11-05.csv
+-rw-r--r-- 1 ubuntu ubuntu 72784063 19:44:53 labels_2026-11-05_4805b507.csv
+-rw-r--r-- 1 ubuntu ubuntu 74388073 19:43:37 labels_2026-11-05_e2adc54e.csv
+[exit code 0; wall time 0.0 s]
+
+== k4, AFTER: back to the committed code: its own extract is read again (the other two are left alone)
+$ docker compose -p de-v3 run --rm -v $PWD/data/raw:/t/raw:ro -v <tmp>/clean:/t/clean -e DATA_DIR=/t -e SAMPLE_FRACTION=0.25 -e RUN_ID=v3-k4-back loader   (lines without 'already downloaded', per-file parse lines and per-step times)
+ Container de-v3-db-1 Running 
+ Container de-v3-db-1 Waiting 
+ Container de-v3-db-1 Healthy 
+ Container de-v3-loader-run-484fb9827a53 Creating 
+ Container de-v3-loader-run-484fb9827a53 Created 
+[loader v3-k4-back] settings: sample_fraction=0.25 buckets=[0] create_index=True tsv_mode=generated clean_version=e2adc54e data_dir=/t/raw db_host=db ijson_backend=yajl2_c
+[loader v3-k4-back] export_date 2026-11-05: 14 files, 262,907 labels
+[loader v3-k4-back] read_extract counts: rows_in_extract=78472 kept=19546 outside_sample=58926 loader_peak_rss_mb=74 path=read_extract labels_2026-11-05_e2adc54e.csv
+[loader v3-k4-back] rows loaded: 19,546; drugs: 3,554; effective dates 2010-05-12 to 2026-11-01; pipeline 4.6 s (download excluded)
+[exit code 0; wall time 6.5 s]
+

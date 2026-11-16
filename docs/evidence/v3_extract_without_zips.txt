@@ -1,0 +1,128 @@
+# v3 extract before zips: a later start with ONLY the extract on disk. <only> and <only2> = temporary folders under the session scratchpad (.../scratchpad/v3/only, .../only2, owner 1000), each holding one copy (cp) of clean/labels_2026-11-05_e2adc54e.csv, the extract written by the parse of v3_extract_key.txt k1. No raw/ folder, no zips. Database of de-v3 (db already up)
+# 2026-11-05 19:46:38 UTC, branch fix-round2-findings at 3ce6b20 plus this commit's change (uncommitted while the test ran), compose project de-v3 (APP_PORT=8581), machine: docs/environment.md
+
+$ find <only> -printf '%M %u %s bytes %TT %P\n'; du -sb <only>
+drwxr-xr-x ubuntu 4096 bytes 19:46:38.4559366840 
+drwxr-xr-x ubuntu 4096 bytes 19:46:38.4599366840 clean
+-rw-r--r-- ubuntu 74388073 bytes 19:46:38.4999366830 clean/labels_2026-11-05_e2adc54e.csv
+74388073 bytes in total
+
+== e1: later start 1: no raw/ at all. The loader fetches the manifest (to learn export_date), finds the extract, reads it; no zip is needed
+$ docker compose -p de-v3 run --rm -v <only>:/t -e DATA_DIR=/t -e RUN_ID=v3-e1-only-extract  loader   (SAMPLE_FRACTION=1.0, the default; lines without per-step times)
+ Container de-v3-db-1 Running 
+ Container de-v3-db-1 Waiting 
+ Container de-v3-db-1 Healthy 
+ Container de-v3-loader-run-66269f70ec5d Creating 
+ Container de-v3-loader-run-66269f70ec5d Created 
+[loader v3-e1-only-extract] settings: sample_fraction=1.0 buckets=[0, 1, 2, 3] create_index=True tsv_mode=generated clean_version=e2adc54e data_dir=/t/raw db_host=db ijson_backend=yajl2_c
+[loader v3-e1-only-extract] download.json: downloading https://api.fda.gov/download.json
+[loader v3-e1-only-extract] export_date 2026-11-05: 14 files, 262,907 labels
+[loader v3-e1-only-extract] labels_2026-11-05_e2adc54e.csv exists: the zips are not needed, not checked
+[loader v3-e1-only-extract] read_extract counts: rows_in_extract=78472 kept=78472 outside_sample=0 loader_peak_rss_mb=182 path=read_extract labels_2026-11-05_e2adc54e.csv
+[loader v3-e1-only-extract] rows loaded: 78,472; drugs: 8,157; effective dates 2006-07-06 to 2026-11-23; pipeline 15.9 s (download excluded)
+[exit code 0; wall time 18.7 s]
+
+$ psql: SELECT count(*) AS labels, (SELECT count(*) FROM drugs) AS drugs FROM labels
+ labels | drugs 
+--------+-------
+  78472 |  8157
+(1 row)
+
+$ psql: SELECT key, value FROM load_info WHERE key IN ('export_date', 'downloaded_on', 'load_path', 'rows_loaded', 'run_id') ORDER BY key
+      key      |                                   value                                   
+---------------+---------------------------------------------------------------------------
+ downloaded_on | 2026-11-05 (date the extract was written; the zips are no longer on disk)
+ export_date   | 2026-11-05
+ load_path     | read_extract labels_2026-11-05_e2adc54e.csv
+ rows_loaded   | 78472
+ run_id        | v3-e1-only-extract
+(5 rows)
+
+$ psql: SELECT step, round(seconds::numeric, 2) AS seconds, rows, detail FROM pipeline_timings WHERE run_id = 'v3-e1-only-extract' AND step IN ('download', 'read_extract', 'pipeline_total', 'total_with_download') ORDER BY started_at, step
+        step         | seconds | rows  |                                                          detail                                                           
+---------------------+---------+-------+---------------------------------------------------------------------------------------------------------------------------
+ download            |    0.69 |       | files downloaded now: 1; reused: 0; zip_bytes=0 json_bytes=0; zips not checked (the extract exists)
+ total_with_download |   16.54 | 78472 | 
+ pipeline_total      |   15.85 | 78472 | everything after the download
+ read_extract        |    1.26 | 78472 | rows_in_extract=78472 kept=78472 outside_sample=0 loader_peak_rss_mb=182 path=read_extract labels_2026-11-05_e2adc54e.csv
+(4 rows)
+
+$ find <only> -printf '%M %u %s bytes %TT %P\n'; du -sb <only>
+drwxr-xr-x ubuntu 4096 bytes 19:46:40.2279366440 
+drwxr-xr-x ubuntu 4096 bytes 19:46:38.4599366840 clean
+-rw-r--r-- ubuntu 74388073 bytes 19:46:38.4999366830 clean/labels_2026-11-05_e2adc54e.csv
+drwxr-xr-x ubuntu 4096 bytes 19:46:40.9079366280 raw
+-rw-r--r-- ubuntu 601654 bytes 19:46:40.9079366280 raw/download.json
+74989727 bytes in total
+
+== e2: later start 2: the manifest fetched in e1 is reused (data/raw/download.json), still no zip
+$ docker compose -p de-v3 run --rm -v <only>:/t -e DATA_DIR=/t -e RUN_ID=v3-e2-only-extract-again  loader   (SAMPLE_FRACTION=1.0, the default; lines without per-step times)
+ Container de-v3-db-1 Running 
+ Container de-v3-db-1 Waiting 
+ Container de-v3-db-1 Healthy 
+ Container de-v3-loader-run-6dcbb59ef9a5 Creating 
+ Container de-v3-loader-run-6dcbb59ef9a5 Created 
+[loader v3-e2-only-extract-again] settings: sample_fraction=1.0 buckets=[0, 1, 2, 3] create_index=True tsv_mode=generated clean_version=e2adc54e data_dir=/t/raw db_host=db ijson_backend=yajl2_c
+[loader v3-e2-only-extract-again] download.json: already downloaded, reused
+[loader v3-e2-only-extract-again] export_date 2026-11-05: 14 files, 262,907 labels
+[loader v3-e2-only-extract-again] labels_2026-11-05_e2adc54e.csv exists: the zips are not needed, not checked
+[loader v3-e2-only-extract-again] read_extract counts: rows_in_extract=78472 kept=78472 outside_sample=0 loader_peak_rss_mb=179 path=read_extract labels_2026-11-05_e2adc54e.csv
+[loader v3-e2-only-extract-again] rows loaded: 78,472; drugs: 8,157; effective dates 2006-07-06 to 2026-11-23; pipeline 14.4 s (download excluded)
+[exit code 0; wall time 16.4 s]
+
+$ psql: SELECT step, round(seconds::numeric, 2) AS seconds, rows, detail FROM pipeline_timings WHERE run_id = 'v3-e2-only-extract-again' AND step IN ('download', 'read_extract', 'pipeline_total', 'total_with_download') ORDER BY started_at, step
+        step         | seconds | rows  |                                                          detail                                                           
+---------------------+---------+-------+---------------------------------------------------------------------------------------------------------------------------
+ download            |    0.00 |       | files downloaded now: 0; reused: 1; zip_bytes=0 json_bytes=0; zips not checked (the extract exists)
+ total_with_download |   14.43 | 78472 | 
+ pipeline_total      |   14.43 | 78472 | everything after the download
+ read_extract        |    1.10 | 78472 | rows_in_extract=78472 kept=78472 outside_sample=0 loader_peak_rss_mb=179 path=read_extract labels_2026-11-05_e2adc54e.csv
+(4 rows)
+
+== e3: the manifest cannot be fetched (dead HTTPS proxy for this one container: HTTPS_PROXY=http://127.0.0.1:9, nothing listens there) and an extract exists, <only2> has no raw/ either
+$ find <only2> -printf '%M %u %s bytes %TT %P\n'; du -sb <only2>
+drwxr-xr-x ubuntu 4096 bytes 19:46:38.4599366840 
+drwxr-xr-x ubuntu 4096 bytes 19:46:38.5039366830 clean
+-rw-r--r-- ubuntu 74388073 bytes 19:46:38.5399366820 clean/labels_2026-11-05_e2adc54e.csv
+74388073 bytes in total
+
+$ docker compose -p de-v3 run --rm -v <only2>:/t -e DATA_DIR=/t -e RUN_ID=v3-e3-no-manifest -e HTTPS_PROXY=http://127.0.0.1:9 loader   (SAMPLE_FRACTION=1.0, the default; lines without per-step times)
+ Container de-v3-db-1 Running 
+ Container de-v3-db-1 Waiting 
+ Container de-v3-db-1 Healthy 
+ Container de-v3-loader-run-dd991bc74deb Creating 
+ Container de-v3-loader-run-dd991bc74deb Created 
+[loader v3-e3-no-manifest] settings: sample_fraction=1.0 buckets=[0, 1, 2, 3] create_index=True tsv_mode=generated clean_version=e2adc54e data_dir=/t/raw db_host=db ijson_backend=yajl2_c
+[loader v3-e3-no-manifest] download.json: downloading https://api.fda.gov/download.json
+[loader v3-e3-no-manifest] download error (<urlopen error [Errno 111] Connection refused>); retry 1/5 in 2.0 s
+[loader v3-e3-no-manifest] download error (<urlopen error [Errno 111] Connection refused>); retry 2/5 in 4.4 s
+[loader v3-e3-no-manifest] download error (<urlopen error [Errno 111] Connection refused>); retry 3/5 in 9.0 s
+[loader v3-e3-no-manifest] download error (<urlopen error [Errno 111] Connection refused>); retry 4/5 in 16.5 s
+[loader v3-e3-no-manifest] download error (<urlopen error [Errno 111] Connection refused>); retry 5/5 in 32.9 s
+[loader] FAILED: RuntimeError: download failed after 6 attempts: https://api.fda.gov/download.json
+  last error: <urlopen error [Errno 111] Connection refused>
+  data/clean holds labels_2026-11-05_e2adc54e.csv, but without the manifest the loader cannot tell which export is current, and it does not guess. Run again when api.fda.gov answers.
+
+[exit code 1; wall time 66.6 s]
+
+$ psql: SELECT value AS load_info_run_id FROM load_info WHERE key = 'run_id'
+     load_info_run_id     
+--------------------------
+ v3-e2-only-extract-again
+(1 row)
+
+Reading: after 6 attempts the loader stops with exit 1 and names the extract it did not use: it does not guess which export is current. The database keeps the load of e2.
+
+Summary
+- Later start with only the extract on disk (74,388,073 bytes, no zips): exit 0, 78,472 labels and 8,157 drugs, as with the zips.
+  e1 (manifest fetched, 601,654 bytes): wall time 18.7 s, download step 0.69 s, read_extract 1.26 s, pipeline 15.85 s.
+  e2 (manifest reused): wall time 16.4 s, download step 0.00 s, read_extract 1.10 s, pipeline 14.43 s.
+  No zip was downloaded or checked in either run ("zips not checked (the extract exists)").
+- Disk for a later start: 74,989,727 bytes (extract + manifest) instead of the extract plus the 14 zips,
+  1,858,907,416 bytes (zip total from the README test of round 2): about 25 times less (arithmetic: 1,933,295,489 / 74,989,727 = 25.8).
+- The price (Judgement): a later start no longer re-verifies the zips, because it does not read them. They matter only
+  for the next parse (a new export or changed clean rules), and that parse checks them as before.
+- Manifest unreachable and an extract present (e3): 5 retries (waits 2.0, 4.4, 9.0, 16.5, 32.9 s), then exit 1 after 66.6 s
+  with a message that names the extract. Judgement: stop rather than load the extract. Without data/raw/download.json
+  the loader cannot know whether openFDA has published a newer export since the extract was written, so loading it would
+  be a guess about the date. With data/raw/download.json kept (e2), a later start needs no network at all.
