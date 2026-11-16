@@ -1,0 +1,253 @@
+# v3 reload lock: how long the dashboard's reads wait while the loader reloads at 100%, measured (2 runs)
+# branch fix-round2-findings at 117a0c0 (no code change in this commit), compose project de-v3 (APP_PORT=8581), machine: docs/environment.md
+# State before: the stack up at 100% (db, app; loaded by run 3 of v3_startup_breakdown.txt), the page answering HTTP 200.
+# Script: docs/evidence/v3_reload_lock.py. Probe = a second session inside the app container: every 0.5 s a new connection runs
+# drugs_for_condition('migraine', 'all'); a read that waits delays the next one, then the probe catches up (the burst of reads ~25 ms apart).
+
+== run 1, started 2026-11-05 20:11:50 UTC
+$ python3 docs/evidence/v3_reload_lock.py
+$ docker compose -p de-v3 run --rm -e RUN_ID=v3-reload-lock-1793909510 loader   (started 20:11:55.507 UTC, exit code 0, wall time 20.1 s; loader lines with a step time)
+  [loader v3-reload-lock-1793909510] download: 0.01 s
+  [loader v3-reload-lock-1793909510] read_extract: 1.56 s
+  [loader v3-reload-lock-1793909510] schema_and_truncate: 0.02 s
+  [loader v3-reload-lock-1793909510] copy: 12.30 s
+  [loader v3-reload-lock-1793909510] index_build: 2.08 s
+  [loader v3-reload-lock-1793909510] build_drugs: 0.27 s
+  [loader v3-reload-lock-1793909510] analyze: 1.38 s
+  [loader v3-reload-lock-1793909510] commit: 0.12 s
+  [loader v3-reload-lock-1793909510] rows loaded: 78,472; drugs: 8,157; effective dates 2006-07-06 to 2026-11-23; pipeline 17.8 s (download excluded)
+
+lock window (pipeline_timings): schema_and_truncate started 20:11:58.825, commit finished 20:12:15.015 UTC: 16.190 s
+
+probe: started (UTC) | ms | rows | relation to the lock window
+  20:11:51.112 |      25.4 | 25 | before
+  20:11:51.612 |      20.9 | 25 | before
+  20:11:52.112 |      23.5 | 25 | before
+  20:11:52.612 |      19.6 | 25 | before
+  20:11:53.112 |      19.8 | 25 | before
+  20:11:53.612 |      19.1 | 25 | before
+  20:11:54.112 |      27.4 | 25 | before
+  20:11:54.612 |      29.6 | 25 | before
+  20:11:55.112 |      28.6 | 25 | before
+  20:11:55.612 |      28.7 | 25 | before
+  20:11:56.112 |      22.3 | 25 | before
+  20:11:56.612 |      25.3 | 25 | before
+  20:11:57.112 |      30.2 | 25 | before
+  20:11:57.612 |      23.7 | 25 | before
+  20:11:58.112 |      22.2 | 25 | before
+  20:11:58.612 |      22.1 | 25 | before
+  20:11:59.112 |   15800.3 | 25 | started in the window
+  20:12:14.913 |      17.5 | 25 | started in the window
+  20:12:14.930 |      24.9 | 25 | started in the window
+  20:12:14.956 |      25.8 | 25 | started in the window
+  20:12:14.982 |      23.6 | 25 | started in the window
+  20:12:15.006 |      22.5 | 25 | started in the window
+  20:12:15.028 |      28.7 | 25 | after
+  20:12:15.058 |      27.4 | 25 | after
+  20:12:15.085 |      21.4 | 25 | after
+  20:12:15.107 |      24.0 | 25 | after
+  20:12:15.131 |      31.6 | 25 | after
+  20:12:15.163 |      24.9 | 25 | after
+  20:12:15.188 |      20.8 | 25 | after
+  20:12:15.209 |      21.8 | 25 | after
+  20:12:15.231 |      19.8 | 25 | after
+  20:12:15.251 |      23.2 | 25 | after
+  20:12:15.275 |      26.4 | 25 | after
+  20:12:15.301 |      27.8 | 25 | after
+  20:12:15.329 |      33.8 | 25 | after
+  20:12:15.363 |      30.0 | 25 | after
+  20:12:15.394 |      30.2 | 25 | after
+  20:12:15.424 |      31.3 | 25 | after
+  20:12:15.456 |      26.1 | 25 | after
+  20:12:15.482 |      24.2 | 25 | after
+  20:12:15.506 |      29.5 | 25 | after
+  20:12:15.536 |      30.3 | 25 | after
+  20:12:15.567 |      24.6 | 25 | after
+  20:12:15.592 |      22.2 | 25 | after
+  20:12:15.614 |      22.6 | 25 | after
+  20:12:15.637 |      21.4 | 25 | after
+  20:12:15.659 |      23.8 | 25 | after
+  20:12:15.683 |      22.0 | 25 | after
+  20:12:15.705 |      29.5 | 25 | after
+  20:12:15.735 |      29.0 | 25 | after
+  20:12:16.112 |      30.6 | 25 | after
+  20:12:16.612 |      24.0 | 25 | after
+  20:12:17.112 |      24.1 | 25 | after
+  20:12:17.612 |      33.8 | 25 | after
+  20:12:18.112 |      22.4 | 25 | after
+  20:12:18.612 |      20.2 | 25 | after
+  20:12:19.114 |      19.5 | 25 | after
+  20:12:19.612 |      22.0 | 25 | after
+  20:12:20.112 |      23.3 | 25 | after
+  20:12:20.612 |      29.6 | 25 | after
+  20:12:21.113 |      26.3 | 25 | after
+  20:12:21.612 |      26.8 | 25 | after
+  20:12:22.112 |      17.8 | 25 | after
+  20:12:22.612 |      25.7 | 25 | after
+  20:12:23.112 |      19.3 | 25 | after
+  20:12:23.612 |      25.2 | 25 | after
+  20:12:24.112 |      25.5 | 25 | after
+  20:12:24.612 |      18.1 | 25 | after
+  20:12:25.112 |      21.6 | 25 | after
+  20:12:25.612 |      26.9 | 25 | after
+  20:12:26.112 |      21.7 | 25 | after
+  20:12:26.612 |      34.5 | 25 | after
+  20:12:27.112 |      29.5 | 25 | after
+  20:12:27.612 |      27.3 | 25 | after
+  20:12:28.112 |      28.6 | 25 | after
+  20:12:28.612 |      30.6 | 25 | after
+  20:12:29.112 |      31.7 | 25 | after
+  20:12:29.612 |      32.8 | 25 | after
+  20:12:30.112 |      29.2 | 25 | after
+  20:12:30.612 |      24.7 | 25 | after
+  20:12:31.112 |      28.1 | 25 | after
+  20:12:31.612 |      27.3 | 25 | after
+  20:12:32.112 |      20.4 | 25 | after
+  20:12:32.612 |      24.3 | 25 | after
+  20:12:33.112 |      26.8 | 25 | after
+  20:12:33.612 |      22.3 | 25 | after
+  20:12:34.112 |      21.1 | 25 | after
+  20:12:34.612 |      26.6 | 25 | after
+  20:12:35.112 |      26.0 | 25 | after
+  20:12:35.612 |      25.6 | 25 | after
+  20:12:36.112 |      23.6 | 25 | after
+
+queries outside the window: 85, median 25.3 ms, max 34.5 ms
+reads that waited (over 1 s): 1; the first started 0.287 s after the window opened and took 15.800 s; it returned -0.103 s from the end of the commit step
+longest read: 15.800 s; rows of every query: [25]
+[exit code 0]
+
+== run 2, started 2026-11-05 20:12:36 UTC
+$ python3 docs/evidence/v3_reload_lock.py
+$ docker compose -p de-v3 run --rm -e RUN_ID=v3-reload-lock-1793909556 loader   (started 20:12:41.500 UTC, exit code 0, wall time 18.6 s; loader lines with a step time)
+  [loader v3-reload-lock-1793909556] download: 0.00 s
+  [loader v3-reload-lock-1793909556] read_extract: 1.59 s
+  [loader v3-reload-lock-1793909556] schema_and_truncate: 0.02 s
+  [loader v3-reload-lock-1793909556] copy: 11.30 s
+  [loader v3-reload-lock-1793909556] index_build: 1.53 s
+  [loader v3-reload-lock-1793909556] build_drugs: 0.34 s
+  [loader v3-reload-lock-1793909556] analyze: 1.18 s
+  [loader v3-reload-lock-1793909556] commit: 0.17 s
+  [loader v3-reload-lock-1793909556] rows loaded: 78,472; drugs: 8,157; effective dates 2006-07-06 to 2026-11-23; pipeline 16.2 s (download excluded)
+
+lock window (pipeline_timings): schema_and_truncate started 20:12:44.918, commit finished 20:12:59.502 UTC: 14.584 s
+
+probe: started (UTC) | ms | rows | relation to the lock window
+  20:12:37.021 |      30.1 | 25 | before
+  20:12:37.521 |      24.3 | 25 | before
+  20:12:38.022 |      21.3 | 25 | before
+  20:12:38.521 |      23.4 | 25 | before
+  20:12:39.021 |      25.4 | 25 | before
+  20:12:39.521 |      28.2 | 25 | before
+  20:12:40.021 |      27.2 | 25 | before
+  20:12:40.521 |      30.1 | 25 | before
+  20:12:41.021 |      26.9 | 25 | before
+  20:12:41.521 |      29.8 | 25 | before
+  20:12:42.021 |      31.8 | 25 | before
+  20:12:42.521 |      35.1 | 25 | before
+  20:12:43.021 |      33.0 | 25 | before
+  20:12:43.521 |      19.6 | 25 | before
+  20:12:44.021 |      30.9 | 25 | before
+  20:12:44.521 |      25.0 | 25 | before
+  20:12:45.021 |   14331.5 | 25 | started in the window
+  20:12:59.353 |      32.1 | 25 | started in the window
+  20:12:59.385 |      25.5 | 25 | started in the window
+  20:12:59.411 |      27.4 | 25 | started in the window
+  20:12:59.439 |      27.0 | 25 | started in the window
+  20:12:59.466 |      22.1 | 25 | started in the window
+  20:12:59.488 |      22.7 | 25 | started in the window
+  20:12:59.511 |      23.1 | 25 | after
+  20:12:59.534 |      33.3 | 25 | after
+  20:12:59.568 |      22.3 | 25 | after
+  20:12:59.591 |      26.7 | 25 | after
+  20:12:59.618 |      31.6 | 25 | after
+  20:12:59.650 |      25.3 | 25 | after
+  20:12:59.675 |      28.4 | 25 | after
+  20:12:59.704 |      24.2 | 25 | after
+  20:12:59.728 |      34.0 | 25 | after
+  20:12:59.762 |      19.1 | 25 | after
+  20:12:59.782 |      28.7 | 25 | after
+  20:12:59.811 |      31.1 | 25 | after
+  20:12:59.842 |      29.2 | 25 | after
+  20:12:59.871 |      30.9 | 25 | after
+  20:12:59.903 |      29.4 | 25 | after
+  20:12:59.932 |      29.4 | 25 | after
+  20:12:59.962 |      25.2 | 25 | after
+  20:12:59.987 |      33.7 | 25 | after
+  20:13:00.021 |      27.9 | 25 | after
+  20:13:00.049 |      27.3 | 25 | after
+  20:13:00.077 |      29.1 | 25 | after
+  20:13:00.106 |      30.0 | 25 | after
+  20:13:00.137 |      28.1 | 25 | after
+  20:13:00.165 |      30.0 | 25 | after
+  20:13:00.521 |      31.3 | 25 | after
+  20:13:01.021 |      29.8 | 25 | after
+  20:13:01.521 |      25.8 | 25 | after
+  20:13:02.021 |      22.3 | 25 | after
+  20:13:02.521 |      25.2 | 25 | after
+  20:13:03.021 |      19.6 | 25 | after
+  20:13:03.521 |      28.7 | 25 | after
+  20:13:04.021 |      33.0 | 25 | after
+  20:13:04.521 |      26.8 | 25 | after
+  20:13:05.021 |      24.7 | 25 | after
+  20:13:05.521 |      23.3 | 25 | after
+  20:13:06.021 |      24.9 | 25 | after
+  20:13:06.521 |      33.8 | 25 | after
+  20:13:07.021 |      31.2 | 25 | after
+  20:13:07.521 |      25.8 | 25 | after
+  20:13:08.021 |      29.2 | 25 | after
+  20:13:08.521 |      26.2 | 25 | after
+  20:13:09.021 |      28.9 | 25 | after
+  20:13:09.521 |      27.3 | 25 | after
+  20:13:10.021 |      28.4 | 25 | after
+  20:13:10.521 |      28.6 | 25 | after
+  20:13:11.021 |      25.9 | 25 | after
+  20:13:11.521 |      20.3 | 25 | after
+  20:13:12.021 |      29.4 | 25 | after
+  20:13:12.521 |      20.7 | 25 | after
+  20:13:13.023 |      25.7 | 25 | after
+  20:13:13.521 |      25.7 | 25 | after
+  20:13:14.021 |      27.7 | 25 | after
+  20:13:14.521 |      27.6 | 25 | after
+  20:13:15.021 |      28.9 | 25 | after
+  20:13:15.521 |      22.7 | 25 | after
+  20:13:16.021 |      32.7 | 25 | after
+  20:13:16.521 |      24.7 | 25 | after
+  20:13:17.021 |      23.8 | 25 | after
+  20:13:17.521 |      36.0 | 25 | after
+  20:13:18.021 |      24.3 | 25 | after
+  20:13:18.521 |      25.4 | 25 | after
+  20:13:19.021 |      22.5 | 25 | after
+  20:13:19.521 |      26.9 | 25 | after
+  20:13:20.021 |      38.2 | 25 | after
+  20:13:20.521 |      22.0 | 25 | after
+  20:13:21.021 |      22.4 | 25 | after
+  20:13:21.521 |      30.7 | 25 | after
+  20:13:22.021 |      29.3 | 25 | after
+
+queries outside the window: 84, median 27.7 ms, max 38.2 ms
+reads that waited (over 1 s): 1; the first started 0.103 s after the window opened and took 14.332 s; it returned -0.149 s from the end of the commit step
+longest read: 14.332 s; rows of every query: [25]
+[exit code 0]
+
+Summary (from the two runs above)
+  lock window = schema_and_truncate start -> commit step end (the loader's own clock): 16.190 s and 14.584 s;
+    it is copy + index_build + build_drugs + analyze + commit (12.30 + 2.08 + 0.27 + 1.38 + 0.12 = 16.15 s; 11.30 + 1.53 + 0.34 +
+    1.18 + 0.17 = 14.52 s, arithmetic), the same steps as the "about 13 s" estimated in round 2 from v2's means.
+  reads outside the window: median 25.3 ms and 27.7 ms (max 34.5 and 38.2 ms).
+  reads that waited: 1 per run (the probe is one reader, so the next ones queue behind it): 15.800 s and 14.332 s. Each started
+    0.287 s and 0.103 s after the window opened and returned 0.103 s and 0.149 s before the loader saw its commit return: the
+    server releases the lock at its commit, the client learns of it a little later. The reads started in the last 0.15 s of
+    the window took 17-34 ms: they did not wait.
+  every read returned 25 rows: a reader never sees the emptied table, it waits and then sees the new load (TRUNCATE takes
+    ACCESS EXCLUSIVE, which conflicts with the ACCESS SHARE of a SELECT; the waiting read gets the committed rows).
+  So: a page opened during a reload hangs for up to the whole window, 14.6-16.2 s here at 100%, then shows the new data.
+  A reload happens only when someone runs the loader again (docker compose up, or run --rm loader); the app never reloads.
+
+Judgement: not changed (right size). For one team's demo the loader runs at start, before the app exists
+(service_completed_successfully), so no reader waits; only a reload by hand while the page is open does, and then for about
+15 s, once. If it mattered (a dashboard that must stay up during reloads), a team would load into a new table instead:
+CREATE TABLE labels_new, COPY, build its GIN index and the drugs rows, ANALYZE, and then in one short transaction
+ALTER TABLE labels RENAME TO labels_old; ALTER TABLE labels_new RENAME TO labels; (the same for drugs); DROP TABLE labels_old.
+Readers would then wait only for the renames, not for the COPY (prediction, not measured). The price: twice the table on
+disk during the load, index and constraint names to manage, and more code in the loader.
