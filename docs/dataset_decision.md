@@ -2,6 +2,10 @@
 
 The question was fixed first: **"Which drugs treat this condition?"** The user types a condition; the answer is the list of active ingredients whose FDA label names it under "Indications and usage", with the number of labels, Rx vs OTC, and the pharmacological class when known.
 
+## In short, in our words
+
+We chose openFDA because it was the most comprehensive source, with the most data available, and that made the work simpler.
+
 Ten drug datasets were checked on 5 Nov 2026 by downloading the data on the cloud VM (and from the class notes "CI - dataset per atlante farmaci.md"). The openFDA NDC file was downloaded and read for this page. Facts come from pages fetched or commands run; anything not verified says so and is excluded from the winner. Scores 1-5 on nine criteria (a fit, b four data tests, c question, d database reason, e measurement richness, f fits ~3 containers, g defensible by five, h risk, inverse, i Italian/European angle). Criterion c is scored for **this** question: a dataset without indications cannot answer it.
 
 ## Verified facts
