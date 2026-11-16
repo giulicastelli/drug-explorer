@@ -1,9 +1,9 @@
-"""Dashboard: which drugs treat this condition?
+"""Streamlit dashboard for exploring active ingredients by medical condition.
 
-The user types a condition; the page lists the active ingredients whose FDA label
-"Indications and usage" text mentions it (full-text search, GIN index on labels.tsv).
-The queries live in sql/queries.sql. Run inside docker compose: the database is
-reached by its service name, "db".
+Users enter a condition name and the app lists the active ingredients whose FDA
+'Indications and usage' text mentions it via PostgreSQL full-text search
+(using the GIN index on labels.tsv). All SQL queries live in sql/queries.sql
+and are executed against the 'db' service inside Docker Compose.
 """
 import html
 import os
@@ -16,7 +16,7 @@ import psycopg
 import streamlit as st
 
 DB = dict(
-    host=os.environ.get("DB_HOST", "db"),          # the service name, never localhost
+    host=os.environ.get("DB_HOST", "db"),          # Docker Compose service hostname (never use localhost)
     port=int(os.environ.get("DB_PORT", "5432")),
     dbname=os.environ["POSTGRES_DB"],
     user=os.environ["POSTGRES_USER"],
@@ -68,12 +68,12 @@ def read_named_queries(path):
     return queries
 
 
-@st.cache_data(ttl=60)   # what the loader wrote changes only when the loader runs again
+@st.cache_data(ttl=60)   # Cache loader metadata briefly since it only updates when the loader runs again
 def load_info():
     with connect() as conn:
         return {
             "info": dict(query(conn, "SELECT key, value FROM load_info").values),
-            # The step timings of the last loader run, in the order the steps ran.
+            # Step durations and row counts from the latest loader execution
             "timings": query(conn, """
                 SELECT step, to_char(seconds, 'FM9990.00') AS seconds,
                        coalesce(to_char(rows, 'FM999,999,999'), '') AS rows
@@ -110,7 +110,7 @@ Q = read_named_queries(QUERIES_FILE)
 loaded = load_info()
 info, timings = loaded["info"], loaded["timings"]
 
-# ---------------------------------------------------------------- the question
+# --- Condition search input and Rx/OTC filter ---
 st.title("Which drugs treat this condition?")
 st.session_state.setdefault("condition", "migraine")
 condition = st.text_input("Condition", key="condition", max_chars=80).strip()
@@ -126,7 +126,7 @@ with connect() as conn:            # not cached: the times shown are real querie
     drugs, ms_drugs = timed_query(conn, Q["drugs_for_condition"], params)
 s = summary.iloc[0]
 
-# ---------------------------------------------------------------- the answer, in one sentence
+# --- Summary headline with ingredient and label counts ---
 if not condition or s.n_labels == 0:
     st.warning(f"No label's indications match “{condition}”. Try another word or a shorter phrase "
                "(the search looks for the exact words, in this order, and ignores common words like “the”).")
@@ -145,7 +145,7 @@ st.markdown(f"**Most labels:** {top}.{filtered}")
 st.caption(f"query time: {ms_drugs:.0f} ms (drugs_for_condition) + {ms_summary:.0f} ms (condition_summary), "
            "full-text search through the GIN index on labels.tsv")
 
-# ---------------------------------------------------------------- chart: top 15 ingredients, Rx vs OTC
+# --- Horizontal bar chart: top 15 ingredients split by Rx vs OTC ---
 st.subheader("The ingredients with the most labels")
 drugs["other"] = drugs.n_labels - drugs.n_rx - drugs.n_otc
 bars = drugs.head(15).rename(columns={"n_rx": "Rx", "n_otc": "OTC"}).melt(
@@ -183,16 +183,16 @@ with connect() as conn:
     labels, ms_labels = timed_query(conn, Q["labels_for_drug"], params | {"substance_key": key})
 st.caption(f"{len(labels)} of {drugs.n_labels[pick]:,} labels, newest first.{filtered} "
            f"query time: {ms_labels:.0f} ms (labels_for_drug, with ts_headline on the rows shown)")
-box = st.container(height=480)    # up to 20 labels: scroll inside the box, not the whole page
+box = st.container(height=480)    # Scrollable container holding up to 20 matching label snippets
 for r in labels.itertuples():
-    # ts_headline marks the match with <b>...</b>; escape everything else, then turn <b> into a highlight.
+    # PostgreSQL ts_headline wraps matched terms in <b>...</b> tags; escape everything else before converting to <mark>
     snippet = html.escape(r.snippet).replace("&lt;b&gt;", "<mark>").replace("&lt;/b&gt;", "</mark>")
     date = r.effective_date.isoformat() if r.effective_date else "no date"
     box.html(f"<div><b>{html.escape(r.brand_name or '(no brand name)')}</b> "
              f"<span style='color:grey'>, {html.escape(r.manufacturer or '')}, {date}, {r.product_type}</span>"
              f"<br>… {snippet} …</div>")
 
-# ---------------------------------------------------------------- what this search is, and is not
+# --- Methodology notes and search limitations ---
 st.subheader("What this search is")
 st.info(
     "A text search in the “Indications and usage” section of FDA labels, not a medical database. "
