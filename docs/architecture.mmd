@@ -6,9 +6,9 @@ flowchart LR
     browser["USER<br/>browser on the host"]
 
     subgraph compose ["docker compose up"]
-        loader["loader<br/>Python, one-shot<br/>download, stream-parse (ijson), clean, COPY<br/>GIN index, drugs table<br/>atlas: TF-IDF, SVD, t-SNE, k-means"]
-        db[("db<br/>PostgreSQL 16<br/>labels (+ tsvector, GIN index)<br/>drugs, atlas, atlas_regions, atlas_neighbours<br/>pipeline_timings, load_info")]
-        app["app<br/>Streamlit<br/>tabs: Atlas, Top ingredients, About"]
+        loader["loader<br/>Python, one-shot<br/>download, stream-parse (ijson), clean, COPY<br/>GIN index, drugs table"]
+        db[("db<br/>PostgreSQL 16<br/>labels (+ tsvector, GIN index)<br/>drugs<br/>pipeline_timings, load_info")]
+        app["app<br/>Streamlit<br/>search, top ingredients, labels"]
     end
 
     vol[("dbdata<br/>named volume")]
@@ -16,10 +16,10 @@ flowchart LR
     fda -- "download.json + 14 zip files<br/>over HTTPS" --> loader
     loader <-- "zip files, saved once,<br/>parsed only when no extract matches" --> raw
     clean <-- "kept rows: written after a parse,<br/>read on later starts" --> loader
-    loader -- "rows (COPY), atlas points<br/>+ SQL that builds the index and drugs" --> db
+    loader -- "rows (COPY)<br/>+ SQL that builds the index and drugs" --> db
     db <-- "data files" --> vol
     app -- "SQL queries<br/>(condition typed by the user, clicked ingredient)" --> db
-    db -- "result rows<br/>(top ingredients, labels, map points, neighbours)" --> app
+    db -- "result rows<br/>(top ingredients, labels)" --> app
     app -- "web page<br/>localhost:8501" --> browser
 
     style compose fill:none,stroke:#555,stroke-width:2px,stroke-dasharray: 6 4

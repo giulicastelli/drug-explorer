@@ -24,7 +24,6 @@ services:
       TSV_MODE: ${TSV_MODE:-generated}           # when the word list (tsvector) is computed
       RUN_ID: ${RUN_ID:-}                        # label for the timing table; empty = automatic
       EXTRACT_CACHE: ${EXTRACT_CACHE:-1}         # 1 = reuse the cleaned extract in data/clean
-      ATLAS_MIN_LABELS: ${ATLAS_MIN_LABELS:-5}   # ingredients with at least this many labels get a dot on the atlas
       DATA_DIR: /data
     volumes:
       - ./data:/data                   # downloaded zips in data/raw, cleaned extract in data/clean
