@@ -1,0 +1,27 @@
+# arm64 (Apple Silicon) check: copied from the template
+# Source: /workspace/cids-demo/lombardy-temperature/docs/evidence/arm64_check.txt (template project, 5 Nov 2026), copied unchanged below the line on 5 Nov 2026.
+# Why it applies here: same base tags (postgres:16, python:3.12-slim) and an app/requirements.txt identical to the template's
+# (streamlit==1.66.0, altair==6.3.0, pandas==3.0.6, psycopg[binary]==3.3.6; checked with diff).
+# app/constraints.txt (D-33) fixes 36 packages; the template resolved 36 wheels, and the six versions it names
+# (numpy 2.5.4, pandas 3.0.6, pyarrow 26.0.1, pillow 12.3.0, protobuf 7.36.2, psycopg-binary 3.3.6) are the ones in app/constraints.txt.
+# The other 30 versions are not named in the template file, so they are not checked here.
+# The loader differs: it adds ijson==3.6.0. Its arm64 wheel was checked separately (measure/how_to_reproduce.md, "Apple Silicon").
+# Not a run on a Mac.
+# ---------------------------------------------------------------------------------------------
+# arm64 (Apple Silicon) check, 5 Nov 2026 — run from the cloud VM, NOT on a Mac
+Image indexes read from mirror.gcr.io (same official images as Docker Hub):
+postgres:16: 386, amd64, arm/v5, arm/v7, arm64/v8, ppc64le, riscv64, s390x
+python:3.12-slim: 386, amd64, arm/v5, arm/v7, arm64/v8, ppc64le, riscv64, s390x
+
+Python wheels for linux/arm64, Python 3.12 (pip download --only-binary=:all: --platform manylinux_2_28_aarch64):
+  altair-6.3.0-py3-none-any.whl
+  pandas-3.0.6-cp312-cp312-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl
+  psycopg_binary-3.3.6-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl
+  streamlit-1.66.0-py3-none-any.whl
+
+Whole dependency tree of app/requirements.txt resolved for linux/arm64, Python 3.12 (pip download --only-binary=:all: -r app/requirements.txt):
+36 wheels, all binary or pure Python, none built from source; the compiled ones are manylinux aarch64 wheels:
+  numpy 2.5.4, pandas 3.0.6, pyarrow 26.0.1, pillow 12.3.0, protobuf 7.36.2, psycopg-binary 3.3.6, rpds-py, markupsafe, charset-normalizer, websockets, watchdog.
+(loader/requirements.txt is psycopg[binary]==3.3.6 only, included above.)
+
+Conclusion: both base images and every wheel the build installs exist for arm64, so Docker Desktop on Apple Silicon should pull native images and build without emulation. This is a check of what is published, NOT a run on a Mac: no Mac was available in this session.

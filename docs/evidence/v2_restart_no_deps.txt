@@ -1,0 +1,78 @@
+# v2 restart without the loader (the on-stage path, docs/demo_script.md): docker compose down (volume kept), then up -d --no-deps db app. Run on this test's own compose project de-v2 (docker compose -p de-v2), not the default project, with the 100% load of v2_second_start_100pct.txt in its volume
+# 2026-11-05 17:29:53 UTC, branch fix-review-findings at 6bac5f8, compose project de-v2 (APP_PORT=8561), machine: docs/environment.md
+
+$ docker compose -p de-v2 down
+ Container de-v2-app-1 Stopping 
+ Container de-v2-db-1 Stopping 
+ Container de-v2-db-1 Stopped 
+ Container de-v2-db-1 Removing 
+ Container de-v2-db-1 Removed 
+ Container de-v2-app-1 Stopped 
+ Container de-v2-app-1 Removing 
+ Container de-v2-app-1 Removed 
+ Container de-v2-loader-1 Stopping 
+ Container de-v2-loader-1 Stopped 
+ Container de-v2-loader-1 Removing 
+ Container de-v2-loader-1 Removed 
+ Network de-v2_default Removing 
+ Network de-v2_default Removed 
+[exit code 0; wall time 1.0 s]
+
+$ docker volume ls --filter name=de-v2
+DRIVER    VOLUME NAME
+local     de-v2_dbdata
+[exit code 0; wall time 0.0 s]
+
+$ docker compose -p de-v2 up -d --no-deps db app
+ Network de-v2_default Creating 
+ Network de-v2_default Creating 
+ Network de-v2_default Created 
+ Network de-v2_default Created 
+ Container de-v2-db-1 Creating 
+ Container de-v2-app-1 Creating 
+ Container de-v2-app-1 Created 
+ Container de-v2-db-1 Created 
+ Container de-v2-db-1 Starting 
+ Container de-v2-app-1 Starting 
+ Container de-v2-db-1 Started 
+ Container de-v2-app-1 Started 
+[exit code 0; wall time 0.8 s]
+
+first HTTP 200 from http://localhost:8561/_stcore/health after 1.8 s
+$ docker compose -p de-v2 ps -a
+NAME          IMAGE         COMMAND                  SERVICE   CREATED         STATUS                           PORTS
+de-v2-app-1   de-v2-app     "streamlit run dashb…"   app       2 seconds ago   Up 1 second (health: starting)   0.0.0.0:8561->8501/tcp
+de-v2-db-1    postgres:16   "docker-entrypoint.s…"   db        2 seconds ago   Up 1 second (health: starting)   5432/tcp
+[exit code 0; wall time 0.1 s]
+
+$ psql: SELECT count(*) FROM labels
+ count 
+-------
+ 78472
+(1 row)
+
+$ psql: SELECT (SELECT count(*) FROM labels) AS labels, (SELECT count(*) FROM drugs) AS drugs, (SELECT string_agg(indexname, ', ' ORDER BY indexname) FROM pg_indexes WHERE tablename = 'labels') AS indexes, (SELECT value FROM load_info WHERE key = 'run_id') AS load_info_run_id, (SELECT value FROM load_info WHERE key = 'load_path') AS load_path
+ labels | drugs |           indexes           | load_info_run_id |             load_path              
+--------+-------+-----------------------------+------------------+------------------------------------
+  78472 |  8157 | labels_pkey, labels_tsv_gin | v2-second-100    | read_extract labels_2026-11-05.csv
+(1 row)
+
+$ psql: SELECT count(*) AS n_labels, count(DISTINCT substance_key) AS n_ingredients FROM labels WHERE tsv @@ phraseto_tsquery('english', 'migraine')
+ n_labels | n_ingredients 
+----------+---------------
+      680 |            48
+(1 row)
+
+Reading: the loader is not in ps -a (never started: --no-deps skips the app's service_completed_successfully
+dependency), db and app are up, and the data of the previous load is served.
+
+Note: /_stcore/health answers when Streamlit is up; it does not query the database. The page itself, run once
+with Streamlit's AppTest inside the app container (default condition 'migraine', product type All):
+$ docker compose -p de-v2 exec -T app python - <<'PY' ... AppTest.from_file('/app/dashboard.py').run() ... PY
+page ran in 1.2 s; headline: ### 48 active ingredients are named for “migraine” in 680 FDA labels (608 prescription, 72 over the counter).
+$ docker compose -p de-v2 ps -a
+NAME          IMAGE         COMMAND                  SERVICE   CREATED          STATUS                    PORTS
+de-v2-app-1   de-v2-app     "streamlit run dashb…"   app       14 seconds ago   Up 13 seconds (healthy)   0.0.0.0:8561->8501/tcp
+de-v2-db-1    postgres:16   "docker-entrypoint.s…"   db        14 seconds ago   Up 14 seconds (healthy)   5432/tcp
+[exit code 0; wall time 0.1 s]
+
