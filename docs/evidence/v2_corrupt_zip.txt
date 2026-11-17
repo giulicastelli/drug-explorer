@@ -1,0 +1,279 @@
+# v2 failure tests on COPIES of the zips (cp, not hard links) in a temporary DATA_DIR <tmp> = /tmp/scratch/v2data (owner 1000), mounted at /testdata; data/raw is never touched. SAMPLE_FRACTION=0.25, database of de-v2
+# 2026-11-05 17:32:37 UTC, branch fix-review-findings at 6bac5f8, compose project de-v2 (APP_PORT=8561), machine: docs/environment.md
+
+$ stat -c %h links  %s bytes  %n <tmp>/raw/drug-label-0014-of-0014.json.zip
+1 links  24340404 bytes  <tmp>/raw/drug-label-0014-of-0014.json.zip
+[exit code 0; wall time 0.0 s]
+
+== c1: partition 14 truncated to 10 MiB (the extract for 2026-11-05 is present in <tmp>/clean)
+$ truncate -s 10M <tmp>/raw/drug-label-0014-of-0014.json.zip
+[exit code 0; wall time 0.0 s]
+
+$ ls -la <tmp>/raw/*0014* <tmp>/clean
+-rw-r--r-- 1 ubuntu ubuntu 136837503 17:10:20 <tmp>/raw/drug-label-0001-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 150583189 17:10:20 <tmp>/raw/drug-label-0002-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 142718578 17:10:20 <tmp>/raw/drug-label-0003-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 143592822 17:10:20 <tmp>/raw/drug-label-0004-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 131391019 17:10:20 <tmp>/raw/drug-label-0005-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 142966674 17:10:21 <tmp>/raw/drug-label-0006-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 148116043 17:10:22 <tmp>/raw/drug-label-0007-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 144007189 17:10:22 <tmp>/raw/drug-label-0008-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 131452993 17:10:23 <tmp>/raw/drug-label-0009-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 137870841 17:10:24 <tmp>/raw/drug-label-0010-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 149632459 17:10:25 <tmp>/raw/drug-label-0011-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 140084549 17:10:26 <tmp>/raw/drug-label-0012-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 135313153 17:10:27 <tmp>/raw/drug-label-0013-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu  10485760 17:32:37 <tmp>/raw/drug-label-0014-of-0014.json.zip
+
+<tmp>/clean:
+total 72656
+drwxr-xr-x 2 ubuntu ubuntu     4096 17:10:27 .
+drwxr-xr-x 4 ubuntu ubuntu     4096 17:10:43 ..
+-rw-r--r-- 1 ubuntu ubuntu 74388073 17:10:27 labels_2026-11-05.csv
+
+$ docker compose -p de-v2 run --rm --no-deps -v <tmp>:/testdata -e DATA_DIR=/testdata -e SAMPLE_FRACTION=0.25 -e RUN_ID=v2-c1-truncated loader   (lines without 'already downloaded' / per-file parse lines)
+[loader v2-c1-truncated] settings: sample_fraction=0.25 buckets=[0] create_index=True tsv_mode=generated data_dir=/testdata/raw db_host=db ijson_backend=yajl2_c
+[loader v2-c1-truncated] export_date 2026-11-05: 14 files, 262,907 labels
+[loader v2-c1-truncated] drug-label-0014-of-0014.json.zip: 10.00 MiB on disk, the manifest says 23.21; checking the current manifest
+[loader v2-c1-truncated] drug-label-0014-of-0014.json.zip: same export (2026-11-05); downloading it again, once
+[loader v2-c1-truncated] download: 0.99 s
+[loader v2-c1-truncated] read_extract: 1.00 s
+[loader v2-c1-truncated] read_extract counts: rows_in_extract=78472 kept=19546 outside_sample=58926 loader_peak_rss_mb=76 path=read_extract labels_2026-11-05.csv
+[loader v2-c1-truncated] schema_and_truncate: 0.02 s
+[loader v2-c1-truncated] copy: 2.87 s
+[loader v2-c1-truncated] index_build: 0.34 s
+[loader v2-c1-truncated] build_drugs: 0.06 s
+[loader v2-c1-truncated] analyze: 0.49 s
+[loader v2-c1-truncated] commit: 0.02 s
+[loader v2-c1-truncated] ANSWER for 'migraine' (labels, Rx/OTC): TOPIRAMATE 36 (36/0); DIVALPROEX SODIUM 31 (31/0); PROPRANOLOL HYDROCHLORIDE 25 (25/0); SUMATRIPTAN SUCCINATE 17 (17/0); RIZATRIPTAN BENZOATE 13 (13/0)
+[loader v2-c1-truncated] rows loaded: 19,546; drugs: 3,554; effective dates 2010-05-12 to 2026-11-01; pipeline 4.8 s (download excluded)
+[exit code 0; wall time 7.0 s]
+
+$ ls -la <tmp>/raw/*0014* <tmp>/clean
+-rw-r--r-- 1 ubuntu ubuntu 136837503 17:10:20 <tmp>/raw/drug-label-0001-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 150583189 17:10:20 <tmp>/raw/drug-label-0002-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 142718578 17:10:20 <tmp>/raw/drug-label-0003-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 143592822 17:10:20 <tmp>/raw/drug-label-0004-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 131391019 17:10:20 <tmp>/raw/drug-label-0005-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 142966674 17:10:21 <tmp>/raw/drug-label-0006-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 148116043 17:10:22 <tmp>/raw/drug-label-0007-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 144007189 17:10:22 <tmp>/raw/drug-label-0008-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 131452993 17:10:23 <tmp>/raw/drug-label-0009-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 137870841 17:10:24 <tmp>/raw/drug-label-0010-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 149632459 17:10:25 <tmp>/raw/drug-label-0011-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 140084549 17:10:26 <tmp>/raw/drug-label-0012-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 135313153 17:10:27 <tmp>/raw/drug-label-0013-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu  24340404 17:32:39 <tmp>/raw/drug-label-0014-of-0014.json.zip
+
+<tmp>/clean:
+total 72656
+drwxr-xr-x 2 ubuntu ubuntu     4096 17:10:27 .
+drwxr-xr-x 4 ubuntu ubuntu     4096 17:10:43 ..
+-rw-r--r-- 1 ubuntu ubuntu 74388073 17:10:27 labels_2026-11-05.csv
+
+$ cmp <tmp>/raw/drug-label-0014-of-0014.json.zip data/raw/drug-label-0014-of-0014.json.zip
+[exit code 0; wall time 0.0 s]
+
+Reading: v2 does NOT exit 1 here. The size check finds the mismatch, fetches the live download.json (same
+export_date 2026-11-05), downloads partition 14 again once (byte-identical to data/raw), and the load succeeds.
+v1 stopped with exit 1 and 'Delete it and run again' in this case (D-6).
+
+== c2: a zip with the right size but a broken directory (last 64 KiB of partition 13 overwritten with zeros). NOTE: the dd offset below was wrong; see "c2, redone" at the end
+$ dd if=/dev/zero of=<tmp>/raw/drug-label-0013-of-0014.json.zip bs=64K count=1 seek=2063 conv=notrunc status=none
+[exit code 0; wall time 0.0 s]
+
+$ stat -c %s bytes  %n <tmp>/raw/drug-label-0013-of-0014.json.zip data/raw/drug-label-0013-of-0014.json.zip
+135313153 bytes  <tmp>/raw/drug-label-0013-of-0014.json.zip
+135313153 bytes  data/raw/drug-label-0013-of-0014.json.zip
+[exit code 0; wall time 0.0 s]
+
+$ docker compose -p de-v2 run --rm --no-deps -v <tmp>:/testdata -e DATA_DIR=/testdata -e SAMPLE_FRACTION=0.25 -e RUN_ID=v2-c2-broken-dir loader   (lines without 'already downloaded' / per-file parse lines)
+[loader v2-c2-broken-dir] settings: sample_fraction=0.25 buckets=[0] create_index=True tsv_mode=generated data_dir=/testdata/raw db_host=db ijson_backend=yajl2_c
+[loader v2-c2-broken-dir] export_date 2026-11-05: 14 files, 262,907 labels
+[loader v2-c2-broken-dir] download: 0.01 s
+[loader v2-c2-broken-dir] read_extract: 0.86 s
+[loader v2-c2-broken-dir] read_extract counts: rows_in_extract=78472 kept=19546 outside_sample=58926 loader_peak_rss_mb=73 path=read_extract labels_2026-11-05.csv
+[loader v2-c2-broken-dir] schema_and_truncate: 0.01 s
+[loader v2-c2-broken-dir] copy: 2.71 s
+[loader v2-c2-broken-dir] index_build: 0.34 s
+[loader v2-c2-broken-dir] build_drugs: 0.05 s
+[loader v2-c2-broken-dir] analyze: 0.53 s
+[loader v2-c2-broken-dir] commit: 0.02 s
+[loader v2-c2-broken-dir] ANSWER for 'migraine' (labels, Rx/OTC): TOPIRAMATE 36 (36/0); DIVALPROEX SODIUM 31 (31/0); PROPRANOLOL HYDROCHLORIDE 25 (25/0); SUMATRIPTAN SUCCINATE 17 (17/0); RIZATRIPTAN BENZOATE 13 (13/0)
+[loader v2-c2-broken-dir] rows loaded: 19,546; drugs: 3,554; effective dates 2010-05-12 to 2026-11-01; pipeline 4.6 s (download excluded)
+[exit code 0; wall time 5.6 s]
+
+$ cp data/raw/drug-label-0013-of-0014.json.zip <tmp>/raw/
+[exit code 0; wall time 0.1 s]
+
+== c3: simulated new export: the cached manifest copy says export_date 2026-10-29 (edited by hand), partition 14 truncated
+$ cp <tmp>/raw/download.json <scratch>/download.json.orig
+[exit code 0; wall time 0.0 s]
+
+$ sed -i s/"export_date": "2026-11-05"/"export_date": "2026-10-29"/ <tmp>/raw/download.json
+[exit code 0; wall time 0.0 s]
+
+$ grep -o "export_date": "[0-9-]*" <tmp>/raw/download.json
+"export_date": "2026-11-03"
+"export_date": "2026-11-02"
+"export_date": "2026-11-02"
+"export_date": "2026-11-02"
+"export_date": "2026-11-04"
+"export_date": "2026-11-04"
+"export_date": "2026-11-04"
+"export_date": "2026-11-04"
+"export_date": "2026-11-02"
+"export_date": "2026-10-29"
+"export_date": "2026-10-29"
+"export_date": "2026-10-29"
+"export_date": "2026-10-29"
+"export_date": "2026-11-02"
+"export_date": "2026-11-02"
+"export_date": "2026-11-02"
+"export_date": "2026-10-29"
+"export_date": "2026-11-02"
+"export_date": "2026-11-03"
+"export_date": "2026-11-03"
+"export_date": "2026-11-03"
+"export_date": "2026-11-03"
+"export_date": "2026-11-02"
+"export_date": "2026-11-02"
+"export_date": "2026-10-29"
+"export_date": "2026-10-29"
+"export_date": "2026-10-29"
+"export_date": "2026-11-03"
+"export_date": "2026-11-02"
+"export_date": "2026-10-29"
+"export_date": "2026-10-29"
+[exit code 0; wall time 0.0 s]
+
+$ truncate -s 10M <tmp>/raw/drug-label-0014-of-0014.json.zip
+[exit code 0; wall time 0.0 s]
+
+$ docker compose -p de-v2 run --rm --no-deps -v <tmp>:/testdata -e DATA_DIR=/testdata -e SAMPLE_FRACTION=0.25 -e RUN_ID=v2-c3-stale loader   (lines without 'already downloaded' / per-file parse lines)
+[loader v2-c3-stale] settings: sample_fraction=0.25 buckets=[0] create_index=True tsv_mode=generated data_dir=/testdata/raw db_host=db ijson_backend=yajl2_c
+[loader v2-c3-stale] export_date 2026-10-29: 14 files, 262,907 labels
+[loader v2-c3-stale] drug-label-0014-of-0014.json.zip: 10.00 MiB on disk, the manifest says 23.21; checking the current manifest
+[loader] FAILED: RuntimeError: openFDA published a new export (2026-11-05); delete data/raw and data/clean and run again (the files there are from the export of 2026-10-29)
+
+[exit code 1; wall time 1.6 s]
+
+$ cp <scratch>/download.json.orig <tmp>/raw/download.json
+[exit code 0; wall time 0.0 s]
+
+== c4: interrupted files left behind: partition 14 only as a .part (first 5 MiB), and the extract only as a .part (first 10 MiB), no finished extract
+(Note: the two `head -c` commands below were run through the log helper with their output redirected, so their
+ own command line and exit line went into the .part files instead of this log: 5,242,967 and 10,485,839 bytes =
+ 5 MiB and 10 MiB of the real files plus 87 and 79 bytes of log text (arithmetic). They are still broken partial
+ files, which is what the test needs. The `ls` pattern *0014* also matches every '-of-0014' name.)
+$ rm <tmp>/raw/drug-label-0014-of-0014.json.zip <tmp>/clean/labels_2026-11-05.csv
+[exit code 0; wall time 0.1 s]
+
+$ ls -la <tmp>/raw/*0014* <tmp>/clean
+-rw-r--r-- 1 ubuntu ubuntu 136837503 17:10:20 <tmp>/raw/drug-label-0001-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 150583189 17:10:20 <tmp>/raw/drug-label-0002-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 142718578 17:10:20 <tmp>/raw/drug-label-0003-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 143592822 17:10:20 <tmp>/raw/drug-label-0004-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 131391019 17:10:20 <tmp>/raw/drug-label-0005-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 142966674 17:10:21 <tmp>/raw/drug-label-0006-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 148116043 17:10:22 <tmp>/raw/drug-label-0007-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 144007189 17:10:22 <tmp>/raw/drug-label-0008-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 131452993 17:10:23 <tmp>/raw/drug-label-0009-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 137870841 17:10:24 <tmp>/raw/drug-label-0010-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 149632459 17:10:25 <tmp>/raw/drug-label-0011-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 140084549 17:10:26 <tmp>/raw/drug-label-0012-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 135313153 17:32:50 <tmp>/raw/drug-label-0013-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu   5242967 17:32:52 <tmp>/raw/drug-label-0014-of-0014.json.zip.part
+
+<tmp>/clean:
+total 10252
+drwxr-xr-x 2 ubuntu ubuntu     4096 17:32:52 .
+drwxr-xr-x 4 ubuntu ubuntu     4096 17:10:43 ..
+-rw-r--r-- 1 ubuntu ubuntu 10485839 17:32:52 labels_2026-11-05.csv.part
+
+$ docker compose -p de-v2 run --rm --no-deps -v <tmp>:/testdata -e DATA_DIR=/testdata -e SAMPLE_FRACTION=0.25 -e RUN_ID=v2-c4-part loader   (lines without 'already downloaded' / per-file parse lines)
+[loader v2-c4-part] settings: sample_fraction=0.25 buckets=[0] create_index=True tsv_mode=generated data_dir=/testdata/raw db_host=db ijson_backend=yajl2_c
+[loader v2-c4-part] export_date 2026-11-05: 14 files, 262,907 labels
+[loader v2-c4-part] drug-label-0014-of-0014.json.zip: downloading 23.21 MiB
+[loader v2-c4-part] download: 0.38 s
+[loader v2-c4-part] parse: 59.89 s
+[loader v2-c4-part] write_extract: 1.65 s
+[loader v2-c4-part] parse counts: read=262907 kept=19546 dropped_no_indications=11921 dropped_no_name=172514 duplicate_set_id=0 name_from_generic_name=1476 bad_effective_time=1 outside_sample=58926 loader_peak_rss_mb=181 path=parse, extract written labels_2026-11-05.csv
+[loader v2-c4-part] schema_and_truncate: 0.07 s
+[loader v2-c4-part] copy: 2.85 s
+[loader v2-c4-part] index_build: 0.34 s
+[loader v2-c4-part] build_drugs: 0.09 s
+[loader v2-c4-part] analyze: 0.65 s
+[loader v2-c4-part] commit: 0.03 s
+[loader v2-c4-part] ANSWER for 'migraine' (labels, Rx/OTC): TOPIRAMATE 36 (36/0); DIVALPROEX SODIUM 31 (31/0); PROPRANOLOL HYDROCHLORIDE 25 (25/0); SUMATRIPTAN SUCCINATE 17 (17/0); RIZATRIPTAN BENZOATE 13 (13/0)
+[loader v2-c4-part] rows loaded: 19,546; drugs: 3,554; effective dates 2010-05-12 to 2026-11-01; pipeline 65.6 s (download excluded)
+[exit code 0; wall time 67.3 s]
+
+$ ls -la <tmp>/raw/*0014* <tmp>/clean
+-rw-r--r-- 1 ubuntu ubuntu 136837503 17:10:20 <tmp>/raw/drug-label-0001-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 150583189 17:10:20 <tmp>/raw/drug-label-0002-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 142718578 17:10:20 <tmp>/raw/drug-label-0003-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 143592822 17:10:20 <tmp>/raw/drug-label-0004-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 131391019 17:10:20 <tmp>/raw/drug-label-0005-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 142966674 17:10:21 <tmp>/raw/drug-label-0006-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 148116043 17:10:22 <tmp>/raw/drug-label-0007-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 144007189 17:10:22 <tmp>/raw/drug-label-0008-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 131452993 17:10:23 <tmp>/raw/drug-label-0009-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 137870841 17:10:24 <tmp>/raw/drug-label-0010-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 149632459 17:10:25 <tmp>/raw/drug-label-0011-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 140084549 17:10:26 <tmp>/raw/drug-label-0012-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu 135313153 17:32:50 <tmp>/raw/drug-label-0013-of-0014.json.zip
+-rw-r--r-- 1 ubuntu ubuntu  24340404 17:32:53 <tmp>/raw/drug-label-0014-of-0014.json.zip
+
+<tmp>/clean:
+total 72656
+drwxr-xr-x 2 ubuntu ubuntu     4096 17:33:55 .
+drwxr-xr-x 4 ubuntu ubuntu     4096 17:10:43 ..
+-rw-r--r-- 1 ubuntu ubuntu 74388073 17:33:55 labels_2026-11-05.csv
+
+$ cmp <tmp>/raw/drug-label-0014-of-0014.json.zip data/raw/drug-label-0014-of-0014.json.zip
+[exit code 0; wall time 0.0 s]
+
+$ cmp <tmp>/clean/labels_2026-11-05.csv data/clean/labels_2026-11-05.csv
+[exit code 0; wall time 0.1 s]
+
+Reading: a .part file is never taken for a finished file. The zip is downloaded again (http_get opens the .part
+with 'wb', so the old bytes are overwritten, then renames it); the half extract is ignored (only the final name
+is read), the zips are parsed, and the extract is written to .part again and renamed. Both end byte-identical.
+
+$ psql: SELECT (SELECT count(*) FROM labels) AS labels, (SELECT count(*) FROM drugs) AS drugs, (SELECT string_agg(indexname, ', ' ORDER BY indexname) FROM pg_indexes WHERE tablename = 'labels') AS indexes, (SELECT value FROM load_info WHERE key = 'run_id') AS load_info_run_id, (SELECT value FROM load_info WHERE key = 'load_path') AS load_path
+ labels | drugs |           indexes           | load_info_run_id |                  load_path                   
+--------+-------+-----------------------------+------------------+----------------------------------------------
+  19546 |  3554 | labels_pkey, labels_tsv_gin | v2-c4-part       | parse, extract written labels_2026-11-05.csv
+(1 row)
+
+
+== c2, redone. The c2 above did not test what it says: seek=2063 blocks of 64 KiB (arithmetic: 2063 x 65,536 =
+   135,200,768) zeroed bytes 135,200,768-135,266,303 of a 135,313,153-byte file, so the last 46,849 bytes with the
+   zip directory stayed intact and the load correctly succeeded. Here the true last 64 KiB are zeroed (byte offset).
+$ dd if=/dev/zero of=<tmp>/raw/drug-label-0013-of-0014.json.zip bs=64K count=1 seek=135247617 oflag=seek_bytes conv=notrunc status=none
+[exit code 0; wall time 0.0 s]
+
+$ stat -c %s bytes  %n <tmp>/raw/drug-label-0013-of-0014.json.zip data/raw/drug-label-0013-of-0014.json.zip
+135313153 bytes  <tmp>/raw/drug-label-0013-of-0014.json.zip
+135313153 bytes  data/raw/drug-label-0013-of-0014.json.zip
+[exit code 0; wall time 0.0 s]
+
+$ docker compose -p de-v2 run --rm --no-deps -v <tmp>:/testdata -e DATA_DIR=/testdata -e SAMPLE_FRACTION=0.25 -e RUN_ID=v2-c2b-broken-dir loader   (lines without 'already downloaded' / per-file parse lines)
+[loader v2-c2b-broken-dir] settings: sample_fraction=0.25 buckets=[0] create_index=True tsv_mode=generated data_dir=/testdata/raw db_host=db ijson_backend=yajl2_c
+[loader v2-c2b-broken-dir] export_date 2026-11-05: 14 files, 262,907 labels
+[loader] FAILED: RuntimeError: drug-label-0013-of-0014.json.zip: not a readable zip (File is not a zip file). Delete it and run again.
+
+[exit code 1; wall time 1.3 s]
+
+$ psql: SELECT (SELECT count(*) FROM labels) AS labels, (SELECT count(*) FROM drugs) AS drugs, (SELECT string_agg(indexname, ', ' ORDER BY indexname) FROM pg_indexes WHERE tablename = 'labels') AS indexes, (SELECT value FROM load_info WHERE key = 'run_id') AS load_info_run_id, (SELECT value FROM load_info WHERE key = 'load_path') AS load_path
+ labels | drugs |           indexes           | load_info_run_id |                  load_path                   
+--------+-------+-----------------------------+------------------+----------------------------------------------
+  19546 |  3554 | labels_pkey, labels_tsv_gin | v2-c4-part       | parse, extract written labels_2026-11-05.csv
+(1 row)
+
+Reading: same size as the manifest, so no re-download; check_zip cannot read the zip directory, the loader stops
+with exit 1 before touching the database (state above = the c4 load, unchanged).
+$ cp data/raw/drug-label-0013-of-0014.json.zip <tmp>/raw/
+[exit code 0; wall time 0.2 s]
+

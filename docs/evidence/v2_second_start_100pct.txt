@@ -1,0 +1,116 @@
+# v2 second start at 100%: data/clean/labels_2026-11-05.csv exists (written in v2_first_start_100pct.txt); docker compose down (volume kept), then up: the loader reads the extract instead of parsing the zips
+# 2026-11-05 17:22:02 UTC, branch fix-review-findings at f5ac020, compose project de-v2 (APP_PORT=8561), machine: docs/environment.md
+
+$ ls -la data/clean
+total 72656
+drwxr-xr-x 2 ubuntu ubuntu     4096 Nov  5 17:20 .
+drwxr-xr-x 4 ubuntu ubuntu     4096 Nov  5 17:20 ..
+-rw-r--r-- 1 ubuntu ubuntu 74388073 Nov  5 17:20 labels_2026-11-05.csv
+[exit code 0; wall time 0.0 s]
+
+$ docker compose -p de-v2 down
+ Container de-v2-app-1 Stopping 
+ Container de-v2-app-1 Stopped 
+ Container de-v2-app-1 Removing 
+ Container de-v2-app-1 Removed 
+ Container de-v2-loader-1 Stopping 
+ Container de-v2-loader-1 Stopped 
+ Container de-v2-loader-1 Removing 
+ Container de-v2-loader-1 Removed 
+ Container de-v2-db-1 Stopping 
+ Container de-v2-db-1 Stopped 
+ Container de-v2-db-1 Removing 
+ Container de-v2-db-1 Removed 
+ Network de-v2_default Removing 
+ Network de-v2_default Removed 
+[exit code 0; wall time 1.3 s]
+
+$ env SAMPLE_FRACTION=1.0 RUN_ID=v2-second-100 docker compose -p de-v2 up -d
+ Network de-v2_default Creating 
+ Network de-v2_default Creating 
+ Network de-v2_default Created 
+ Network de-v2_default Created 
+ Container de-v2-db-1 Creating 
+ Container de-v2-db-1 Created 
+ Container de-v2-loader-1 Creating 
+ Container de-v2-loader-1 Created 
+ Container de-v2-app-1 Creating 
+ Container de-v2-app-1 Created 
+ Container de-v2-db-1 Starting 
+ Container de-v2-db-1 Started 
+ Container de-v2-db-1 Waiting 
+ Container de-v2-db-1 Healthy 
+ Container de-v2-loader-1 Starting 
+ Container de-v2-loader-1 Started 
+ Container de-v2-loader-1 Waiting 
+ Container de-v2-loader-1 Exited 
+ Container de-v2-app-1 Starting 
+ Container de-v2-app-1 Started 
+[exit code 0; wall time 19.3 s]
+
+first HTTP 200 from http://localhost:8561/_stcore/health after 20.2 s
+$ docker compose -p de-v2 logs loader   (lines without 'already downloaded')
+loader-1  | [loader v2-second-100] settings: sample_fraction=1.0 buckets=[0, 1, 2, 3] create_index=True tsv_mode=generated data_dir=/data/raw db_host=db ijson_backend=yajl2_c
+loader-1  | [loader v2-second-100] export_date 2026-11-05: 14 files, 262,907 labels
+loader-1  | [loader v2-second-100] download: 0.01 s
+loader-1  | [loader v2-second-100] read_extract: 1.02 s
+loader-1  | [loader v2-second-100] read_extract counts: rows_in_extract=78472 kept=78472 outside_sample=0 loader_peak_rss_mb=179 path=read_extract labels_2026-11-05.csv
+loader-1  | [loader v2-second-100] schema_and_truncate: 0.02 s
+loader-1  | [loader v2-second-100] copy: 10.41 s
+loader-1  | [loader v2-second-100] index_build: 1.32 s
+loader-1  | [loader v2-second-100] build_drugs: 0.20 s
+loader-1  | [loader v2-second-100] analyze: 0.93 s
+loader-1  | [loader v2-second-100] commit: 0.08 s
+loader-1  | [loader v2-second-100] ANSWER for 'migraine' (labels, Rx/OTC): TOPIRAMATE 128 (128/0); PROPRANOLOL HYDROCHLORIDE 121 (121/0); DIVALPROEX SODIUM 114 (114/0); SUMATRIPTAN SUCCINATE 74 (74/0); ACETAMINOPHEN + ASPIRIN + CAFFEINE 47 (0/47)
+loader-1  | [loader v2-second-100] rows loaded: 78,472; drugs: 8,157; effective dates 2006-07-06 to 2026-11-23; pipeline 14.0 s (download excluded)
+
+$ psql: SELECT step, round(seconds::numeric, 3) AS seconds, rows, left(detail, 230) AS detail FROM pipeline_timings WHERE run_id = 'v2-second-100' ORDER BY started_at, finished_at
+        step         | seconds | rows  |                                                      detail                                                      
+---------------------+---------+-------+------------------------------------------------------------------------------------------------------------------
+ download            |   0.006 |       | files downloaded now: 0; reused: 15; zip_bytes=1858907416 json_bytes=8749654318
+ total_with_download |  15.768 | 78472 | 
+ read_extract        |   1.020 | 78472 | rows_in_extract=78472 kept=78472 outside_sample=0 loader_peak_rss_mb=179 path=read_extract labels_2026-11-05.csv
+ pipeline_total      |  15.762 | 78472 | everything after the download
+ schema_and_truncate |   0.012 |       | 
+ copy                |  11.666 | 78472 | tsv_mode=generated
+ index_build         |   1.675 |       | index_bytes=11501568
+ build_drugs         |   0.243 |  8157 | 
+ analyze             |   1.003 |       | 
+ commit              |   0.096 |       | 
+ download            |   0.007 |       | files downloaded now: 0; reused: 15; zip_bytes=1858907416 json_bytes=8749654318
+ total_with_download |  14.027 | 78472 | 
+ read_extract        |   1.016 | 78472 | rows_in_extract=78472 kept=78472 outside_sample=0 loader_peak_rss_mb=179 path=read_extract labels_2026-11-05.csv
+ pipeline_total      |  14.020 | 78472 | everything after the download
+ schema_and_truncate |   0.017 |       | 
+ copy                |  10.411 | 78472 | tsv_mode=generated
+ index_build         |   1.322 |       | index_bytes=11501568
+ build_drugs         |   0.199 |  8157 | 
+ analyze             |   0.930 |       | 
+ commit              |   0.082 |       | 
+(20 rows)
+
+Note: two runs carry RUN_ID v2-second-100. The first 10 rows (pipeline_total 15.762 s) are a first attempt of this
+test made without "docker compose down": the app container stayed up, so its HTTP 200 time (17.6 s) did not include
+the app start, and the attempt was redone. The last 10 rows (pipeline_total 14.020 s) are the run shown in this file
+(down, then up: first HTTP 200 after 20.2 s).
+
+$ psql: SELECT (SELECT count(*) FROM labels) AS labels, (SELECT count(*) FROM drugs) AS drugs, (SELECT string_agg(indexname, ', ' ORDER BY indexname) FROM pg_indexes WHERE tablename = 'labels') AS indexes, (SELECT value FROM load_info WHERE key = 'run_id') AS load_info_run_id, (SELECT value FROM load_info WHERE key = 'load_path') AS load_path
+ labels | drugs |           indexes           | load_info_run_id |             load_path              
+--------+-------+-----------------------------+------------------+------------------------------------
+  78472 |  8157 | labels_pkey, labels_tsv_gin | v2-second-100    | read_extract labels_2026-11-05.csv
+(1 row)
+
+$ psql: SELECT count(*) AS n_labels, count(DISTINCT substance_key) AS n_ingredients FROM labels WHERE tsv @@ phraseto_tsquery('english', 'migraine')
+ n_labels | n_ingredients 
+----------+---------------
+      680 |            48
+(1 row)
+
+$ psql < checksum.sql   (md5 over every column of labels incl. tsv and NULL flags, and over drugs)
+ labels |            labels_md5            |            drugs_md5             
+--------+----------------------------------+----------------------------------
+  78472 | 5c7c3a82ffa29cbf44e126088f83dbe9 | 2a7c425b32b3df760305435438a7e92a
+(1 row)
+
+Same labels_md5 and drugs_md5 as after the parse in v2_first_start_100pct.txt: the extract path loads exactly the same rows.
+v1 answer for comparison: docs/evidence/core_queries_100pct.txt:3, migraine (labels, ingredients, rx, otc) = (680, 48, 608, 72).
