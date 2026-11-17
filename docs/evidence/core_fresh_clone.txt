@@ -1,0 +1,4 @@
+Fresh clone of main at 55c5da8 into a scratch folder; data/raw filled with hard links (D-7); cp .env.example .env;
+APP_PORT=8531 SAMPLE_FRACTION=0.25 docker compose -p de-core up --build -d  -> exit 0 (images cached)
+from the start of that command to the first HTTP 200 on http://localhost:8531/_stcore/health: 78.997 s (date +%s.%N before and after, polled every 0.5 s)
+services after: app running, db running, loader exited 0
