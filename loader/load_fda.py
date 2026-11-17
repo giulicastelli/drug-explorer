@@ -142,7 +142,7 @@ def size_ok(path, partition):
     """Does the file match the manifest's size_mb (MiB, 2 decimals)? Only written in the log: in the
     export of 17 Nov 2026 the manifest differs from the real files by up to 0.16 MiB, and two copies
     of the same file, served by different CDN servers, differ by 15 KB. A cut download is caught by
-    http_get (byte count), a broken zip by check_zip, a wrong file by the label count in parse."""
+    http_get (byte count), a broken zip by check_zip, a broken JSON by the parse."""
     return abs(path.stat().st_size / 2 ** 20 - float(partition["size_mb"])) <= 0.01
 
 
@@ -191,7 +191,7 @@ def download():
             downloaded += 1
         if not size_ok(dest, p):
             log(f"{dest.name}: {dest.stat().st_size / 2 ** 20:.2f} MiB on disk, the manifest says {p['size_mb']} "
-                "(the manifest's size is approximate: the zip and its label count are checked instead)")
+                "(the manifest's size is approximate: the download's byte count and the zip are checked instead)")
         json_bytes += check_zip(dest, p)
         files.append((dest, int(p["records"])))
     return export, files, downloaded, json_bytes
