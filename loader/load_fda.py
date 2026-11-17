@@ -99,8 +99,14 @@ def http_get(url, dest, attempts=6, timeout=120):
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "cids-drug-explorer-loader/1.0"})
             with urllib.request.urlopen(req, timeout=timeout) as resp, open(part, "wb") as out:
+                expected = resp.headers.get("Content-Length")   # the size the server says it is sending
+                received = 0
                 while chunk := resp.read(1 << 20):     # 1 MiB at a time: never the whole file in memory
                     out.write(chunk)
+                    received += len(chunk)
+            if expected is not None and received != int(expected):
+                # A connection that closes early can end the read without an error: count the bytes.
+                raise ConnectionError(f"received {received:,} of {int(expected):,} bytes")
             part.rename(dest)
             return
         # URLError: DNS, refused, HTTP errors. TimeoutError: no answer within `timeout`.
@@ -129,47 +135,21 @@ def check_zip(path, partition):
     if len(members) != 1 or not members[0].filename.endswith(".json") or members[0].file_size == 0:
         raise RuntimeError(f"{path.name}: expected one non-empty .json file inside, found "
                            f"{[(m.filename, m.file_size) for m in members]}. Delete it and run again.")
-    if not size_ok(path, partition):
-        raise RuntimeError(f"{path.name}: {path.stat().st_size / 2 ** 20:.2f} MiB on disk, the manifest says "
-                           f"{partition['size_mb']}. Delete it and run again.")
     return members[0].file_size
 
 
 def size_ok(path, partition):
-    """The manifest's size_mb is in MiB, with 2 decimals."""
+    """Does the file match the manifest's size_mb (MiB, 2 decimals)? Only written in the log: in the
+    export of 17 Nov 2026 the manifest differs from the real files by up to 0.16 MiB, and two copies
+    of the same file, served by different CDN servers, differ by 15 KB. A cut download is caught by
+    http_get (byte count), a broken zip by check_zip, a wrong file by the label count in parse."""
     return abs(path.stat().st_size / 2 ** 20 - float(partition["size_mb"])) <= 0.01
-
-
-def same_export_or_stop(dest, p, export):
-    """A zip whose size does not match the cached manifest: fetch the live manifest. If openFDA
-    has published a new export since the manifest was cached, the old files cannot be completed:
-    stop with a message that says so (deleting only this file would loop)."""
-    log(f"{dest.name}: {dest.stat().st_size / 2 ** 20:.2f} MiB on disk, the manifest says {p['size_mb']}; "
-        "checking the current manifest")
-    latest = DATA_DIR / "download.latest.json"
-    http_get(MANIFEST_URL, latest)
-    now = json.loads(latest.read_text(encoding="utf-8"))["results"]["drug"]["label"]["export_date"]
-    latest.unlink()
-    if now != export["export_date"]:
-        raise RuntimeError(f"openFDA published a new export ({now}); delete data/raw and data/clean "
-                           f"and run again (the files there are from the export of {export['export_date']})")
-    return now
-
-
-def stale_or_redownload(dest, p, export):
-    """A zip on disk whose size does not match the cached manifest: either a new export
-    (same_export_or_stop stops), or this file is damaged or cut short (download it again, once)."""
-    now = same_export_or_stop(dest, p, export)
-    log(f"{dest.name}: same export ({now}); downloading it again, once")
-    dest.unlink()
-    http_get(p["file"], dest)
 
 
 def download():
     """Fetch the manifest, then every partition not yet in data/raw, unless the extract of this
     export (and of these clean rules) exists: then the zips are not needed and not checked.
     The cached manifest is reused with the cached files: they belong to the same export.
-    A size mismatch re-checks the live manifest (stale_or_redownload).
     To get a newer export, delete data/raw and data/clean."""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     manifest_path = DATA_DIR / "download.json"
@@ -203,22 +183,15 @@ def download():
     files, json_bytes = [], 0
     for p in partitions:
         dest = DATA_DIR / Path(p["file"]).name
-        if dest.exists() and dest.stat().st_size > 0 and not size_ok(dest, p):
-            stale_or_redownload(dest, p, export)    # if the size is still wrong, check_zip stops
-            downloaded += 1
-        elif dest.exists() and dest.stat().st_size > 0:
+        if dest.exists() and dest.stat().st_size > 0:
             log(f"{dest.name}: already downloaded, reused")
         else:
             log(f"{dest.name}: downloading {p['size_mb']} MiB")
             http_get(p["file"], dest)
             downloaded += 1
-            if not size_ok(dest, p):
-                # A missing zip (or a .part left by a cut download) comes from the URL of the cached
-                # manifest; after a new export that URL serves the new file, with another size.
-                now = same_export_or_stop(dest, p, export)
-                dest.unlink()        # same export: the server's file and its manifest disagree
-                raise RuntimeError(f"{dest.name}: downloaded just now, but its size does not match the "
-                                   f"manifest of the export {now} ({p['size_mb']} MiB). Try again later.")
+        if not size_ok(dest, p):
+            log(f"{dest.name}: {dest.stat().st_size / 2 ** 20:.2f} MiB on disk, the manifest says {p['size_mb']} "
+                "(the manifest's size is approximate: the zip and its label count are checked instead)")
         json_bytes += check_zip(dest, p)
         files.append((dest, int(p["records"])))
     return export, files, downloaded, json_bytes
@@ -283,7 +256,7 @@ def parse(files):
     after reading it. The usable rows of all 4 buckets stay in memory (a list of tuples), so
     they can be written to the extract; the sample is taken after."""
     counts = dict(read=0, kept=0, dropped_no_indications=0, dropped_no_name=0,
-                  duplicate_set_id=0, name_from_generic_name=0, bad_effective_time=0)
+                  duplicate_set_id=0, name_from_generic_name=0, bad_effective_time=0, manifest_records=0)
     rows, position = [], {}               # position: set_id -> index in rows
     for path, expected in files:
         t0, n = time.perf_counter(), 0
@@ -302,9 +275,11 @@ def parse(files):
                 position[row[0]] = len(rows)
                 rows.append(row)
         counts["read"] += n
+        counts["manifest_records"] += expected
         if n != expected:
-            raise RuntimeError(f"{path.name}: {n} labels read, the manifest says {expected}. "
-                               "The file is damaged or not from this export: delete it and run again.")
+            # Noted, not an error: in the export of 17 Nov 2026 the last file holds 4,800 labels and the
+            # manifest says 4,801. A damaged file fails earlier: a broken zip or JSON stops the read.
+            log(f"{path.name}: {n:,} labels read, the manifest says {expected:,} (noted, the load goes on)")
         log(f"{path.name}: {n:,} labels in {time.perf_counter() - t0:.1f} s; usable rows so far {len(rows):,}")
     counts["kept"] = len(rows)
     return rows, counts
