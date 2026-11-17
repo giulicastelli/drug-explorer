@@ -1,0 +1,83 @@
+# First start from a clean clone (git clone, cp .env.example .env, docker compose up --build)
+# Second try in the same clone: the first stopped at the manifest size check (D-54, fixed in 0257e61); download.json was reused
+# Date: Tue 17 Nov 2026 14:03:32 CET
+# Laptop: MacBookAir10,1, Apple M1, 8 GB RAM, macOS 27.0.1
+# Docker 29.9.2
+
+ Container drug-explorer-prova-db-1 Running 
+ Container drug-explorer-prova-loader-1 Recreate 
+ Container drug-explorer-prova-loader-1 Recreated 
+Attaching to app-1, db-1, loader-1
+ Container drug-explorer-prova-db-1 Waiting 
+ Container drug-explorer-prova-db-1 Healthy 
+ Container drug-explorer-prova-loader-1 Starting 
+ Container drug-explorer-prova-loader-1 Started 
+ Container drug-explorer-prova-loader-1 Waiting 
+loader-1  | [loader 20261117T125729Z-968c8c] settings: sample_fraction=1.0 buckets=[0, 1, 2, 3] create_index=True tsv_mode=generated clean_version=0b0f6b5a data_dir=/data/raw db_host=db ijson_backend=yajl2_c
+loader-1  | [loader 20261117T125729Z-968c8c] download.json: already downloaded, reused
+loader-1  | [loader 20261117T125729Z-968c8c] export_date 2026-11-17: 14 files, 264,801 labels
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0001-of-0014.json.zip: downloading 130.33 MiB
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0001-of-0014.json.zip: 130.34 MiB on disk, the manifest says 130.33 (the manifest's size is approximate: the zip and its label count are checked instead)
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0002-of-0014.json.zip: downloading 143.63 MiB
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0002-of-0014.json.zip: 143.78 MiB on disk, the manifest says 143.63 (the manifest's size is approximate: the zip and its label count are checked instead)
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0003-of-0014.json.zip: downloading 136.07 MiB
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0003-of-0014.json.zip: 135.93 MiB on disk, the manifest says 136.07 (the manifest's size is approximate: the zip and its label count are checked instead)
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0004-of-0014.json.zip: downloading 137.44 MiB
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0004-of-0014.json.zip: 137.47 MiB on disk, the manifest says 137.44 (the manifest's size is approximate: the zip and its label count are checked instead)
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0005-of-0014.json.zip: downloading 124.93 MiB
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0005-of-0014.json.zip: 124.97 MiB on disk, the manifest says 124.93 (the manifest's size is approximate: the zip and its label count are checked instead)
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0006-of-0014.json.zip: downloading 137.38 MiB
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0006-of-0014.json.zip: 137.31 MiB on disk, the manifest says 137.38 (the manifest's size is approximate: the zip and its label count are checked instead)
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0007-of-0014.json.zip: downloading 140.46 MiB
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0007-of-0014.json.zip: 140.49 MiB on disk, the manifest says 140.46 (the manifest's size is approximate: the zip and its label count are checked instead)
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0008-of-0014.json.zip: downloading 137.80 MiB
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0008-of-0014.json.zip: 137.78 MiB on disk, the manifest says 137.80 (the manifest's size is approximate: the zip and its label count are checked instead)
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0009-of-0014.json.zip: downloading 126.28 MiB
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0010-of-0014.json.zip: downloading 133.12 MiB
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0010-of-0014.json.zip: 133.17 MiB on disk, the manifest says 133.12 (the manifest's size is approximate: the zip and its label count are checked instead)
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0011-of-0014.json.zip: downloading 140.24 MiB
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0011-of-0014.json.zip: 140.35 MiB on disk, the manifest says 140.24 (the manifest's size is approximate: the zip and its label count are checked instead)
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0012-of-0014.json.zip: downloading 135.88 MiB
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0012-of-0014.json.zip: 135.77 MiB on disk, the manifest says 135.88 (the manifest's size is approximate: the zip and its label count are checked instead)
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0013-of-0014.json.zip: downloading 126.13 MiB
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0013-of-0014.json.zip: 126.20 MiB on disk, the manifest says 126.13 (the manifest's size is approximate: the zip and its label count are checked instead)
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0014-of-0014.json.zip: downloading 38.23 MiB
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0014-of-0014.json.zip: 38.07 MiB on disk, the manifest says 38.23 (the manifest's size is approximate: the zip and its label count are checked instead)
+loader-1  | [loader 20261117T125729Z-968c8c] download: 41.83 s
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0001-of-0014.json.zip: 20,000 labels in 3.7 s; usable rows so far 3,899
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0002-of-0014.json.zip: 20,000 labels in 4.7 s; usable rows so far 10,227
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0003-of-0014.json.zip: 20,000 labels in 4.2 s; usable rows so far 18,346
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0004-of-0014.json.zip: 20,000 labels in 3.9 s; usable rows so far 25,690
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0005-of-0014.json.zip: 20,000 labels in 3.3 s; usable rows so far 29,277
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0006-of-0014.json.zip: 20,000 labels in 4.0 s; usable rows so far 35,382
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0007-of-0014.json.zip: 20,000 labels in 4.4 s; usable rows so far 43,806
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0008-of-0014.json.zip: 20,000 labels in 4.4 s; usable rows so far 51,449
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0009-of-0014.json.zip: 20,000 labels in 3.9 s; usable rows so far 55,078
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0010-of-0014.json.zip: 20,000 labels in 4.0 s; usable rows so far 60,592
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0011-of-0014.json.zip: 20,000 labels in 4.4 s; usable rows so far 68,983
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0012-of-0014.json.zip: 20,000 labels in 4.2 s; usable rows so far 76,859
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0013-of-0014.json.zip: 20,000 labels in 3.7 s; usable rows so far 80,621
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0014-of-0014.json.zip: 4,800 labels read, the manifest says 4,801 (noted, the load goes on)
+loader-1  | [loader 20261117T125729Z-968c8c] drug-label-0014-of-0014.json.zip: 4,800 labels in 1.1 s; usable rows so far 84,172
+loader-1  | [loader 20261117T125729Z-968c8c] parse: 53.97 s
+loader-1  | [loader 20261117T125729Z-968c8c] write_extract: 1.57 s
+loader-1  | [loader 20261117T125729Z-968c8c] parse counts: read=264800 kept=84172 dropped_no_indications=11941 dropped_no_name=168677 duplicate_set_id=10 name_from_generic_name=1665 bad_effective_time=2 manifest_records=264801 outside_sample=0 loader_peak_rss_mb=192 path=parse, extract written labels_2026-11-17_0b0f6b5a.csv
+loader-1  | [loader 20261117T125729Z-968c8c] schema_and_truncate: 0.04 s
+loader-1  | [loader 20261117T125729Z-968c8c] copy: 8.38 s
+loader-1  | [loader 20261117T125729Z-968c8c] index_build: 1.21 s
+loader-1  | [loader 20261117T125729Z-968c8c] build_drugs: 0.27 s
+loader-1  | [loader 20261117T125729Z-968c8c] analyze: 0.67 s
+loader-1  | [loader 20261117T125729Z-968c8c] commit: 0.00 s
+loader-1  | [loader 20261117T125729Z-968c8c] ANSWER for 'migraine' (labels, Rx/OTC): TOPIRAMATE 143 (143/0); PROPRANOLOL HYDROCHLORIDE 135 (135/0); DIVALPROEX SODIUM 134 (134/0); SUMATRIPTAN SUCCINATE 75 (75/0); ACETAMINOPHEN + ASPIRIN + CAFFEINE 56 (0/56)
+loader-1  | [loader 20261117T125729Z-968c8c] rows loaded: 84,172; drugs: 8,368; effective dates 2006-07-06 to 2026-11-23; pipeline 66.2 s (download excluded)
+ Container drug-explorer-prova-loader-1 Exited 
+ Container drug-explorer-prova-app-1 Starting 
+[Kloader-1 exited with code 0
+ Container drug-explorer-prova-app-1 Started 
+app-1     | 2026-11-17 12:59:18.706 Uvicorn server started on 0.0.0.0:8501
+app-1     | 
+app-1     |   You can now view your Streamlit app in your browser.
+app-1     | 
+app-1     |   Local URL: http://localhost:8501
+app-1     |   Network URL: http://172.18.0.3:8501
+app-1     | 
