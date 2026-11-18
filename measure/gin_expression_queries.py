@@ -1,6 +1,6 @@
 """GIN expression-index experiment, the query side (one load = one call of this script).
 
-The question (review round 1, "asked and not answered"): why a stored
+The question (one we had not answered in the schema notes): why a stored
 GENERATED tsv column plus a GIN index on it, and not a GIN index on the expression
 to_tsvector('english', indications) with no stored column?
 measure/gin_expression.sh loads the data in one of the two states, then runs this script:

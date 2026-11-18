@@ -1,6 +1,6 @@
 # Parallel scan: why the query without the index runs with no worker, 100%, one load (`measure/parallel_scan.sh`)
 
-**The question** (review round 1, Q5 to Role C): in the benchmark's plans, the migraine query without the GIN index is a plain `Seq Scan` with no worker, while the on-the-fly query uses 2 workers. Why, and is the index's speed-up measured from Python the speed-up the database sees?
+**The question** (raised while reading the benchmark plans): in the benchmark's plans, the migraine query without the GIN index is a plain `Seq Scan` with no worker, while the on-the-fly query uses 2 workers. Why, and is the index's speed-up measured from Python the speed-up the database sees?
 
 **What changed, one thing:** the planner's three parallel cost settings, for one session only: `SET parallel_setup_cost = 0, parallel_tuple_cost = 0, min_parallel_table_scan_size = 0` (`measure/parallel_scan.py`, `PARALLEL`). The data, the query and the server settings stay as they are. For the estimates only, each of the three is also set to 0 alone, to see which one decides.
 
