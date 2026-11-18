@@ -44,7 +44,7 @@ First start at 100% (reading the 14 zips instead of the saved extract): 37.7 s, 
 - **Alessandro D'Amore**, data and loading: loader, dataset choice, dropping the atlas, cleanup, slides.
 - **Andrea D'Ascanio**, database and queries: schema and GIN index, queries, database experiments, decision log.
 - **Federico Davolos**, the page: Streamlit dashboard, README test, screenshots and backup video.
-- **Giulia Castelli**, Docker, README, diagram: repository setup, docker-compose, diagram, the fresh-clone test and the loader fix it led to (D-54), README.
+- **Giulia Castelli**, Docker, README, diagram: repository setup, docker-compose, diagram, the fresh-clone test and the loader fix.
 - **Giovanni Margiacchi**, measurements: benchmark on the laptop, predictions, app memory, how-to-run.
 
 Tools: Python 3.12, ijson, psycopg 3, PostgreSQL 16, Streamlit, altair, pandas, Docker Compose, `docker stats`, matplotlib, Mermaid.
