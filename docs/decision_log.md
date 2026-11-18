@@ -416,3 +416,11 @@ A second reading of the whole system found two failure paths that the v2 fixes h
 **D-53, No atlas.** → We tried an "atlas": a 2D map of the ingredients, placed by the words of their "Indications and usage" texts (TF-IDF, SVD, t-SNE, k-means). We removed it before the final version.
 - **Why:** it is machine learning, which the project does not need and the course does not ask for; it adds three libraries (numpy, scipy, scikit-learn) and about 6 s to every start; it does not help answer our question; and we could not explain every step of it well.
 - **What we kept:** the search, the Rx/OTC bars and the table of the top ingredients, and the labels of one ingredient with the matching words highlighted. The benchmark measures this version of the system.
+
+## The FDA manifest is approximate (17 Nov)
+
+**D-54, The manifest's size and label count: written in the log, not checked.** → The fresh-clone test of issue #8 (17 Nov 2026, new export 2026-11-17, 264,801 labels) stopped at the first zip: 130.34 MiB on disk, the manifest says 130.33, and the check allowed 0.01 MiB (D-6).
+- **What we found** (`docs/evidence/v4_manifest_sizes.txt`): the 14 zips differ from the manifest's `size_mb` by -0.16 to +0.15 MiB; two downloads of the same zip from two CDN servers gave two different files (136,673,195 and 136,689,035 bytes, different ETags), both complete; the last zip holds 4,800 labels and the manifest says 4,801.
+- **What changed:** `http_get` counts the bytes and compares them with the server's `Content-Length`, so a cut download is retried. The manifest's size and label count are written in the log, not checked. `same_export_or_stop` and `stale_or_redownload` are gone. Still checked: the zip opens and holds one non-empty `.json`, and a broken JSON stops the parse.
+- **Price:** a cached zip from an older export is no longer found by its size; to get a newer export, delete `data/raw` and `data/clean`, as before.
+- **Test:** a full load of the 17 Nov export after the change: 264,800 labels read, 84,169 kept, the page answers "migraine".
