@@ -1,10 +1,10 @@
-# Measurements: v1, v2 and v3
+# Measurements: v1, v2, v3 and our laptop
 
-The main README keeps seven key numbers. This file has the whole table, the protocol, the verdict rule, the experiments and what each review round changed. Three benchmarks, all on the same machine, all kept unchanged:
+The main README keeps seven key numbers. This file has the whole table, the protocol, the verdict rule, the experiments and what we changed after each round of checks. Three benchmarks on the same cloud machine, all kept unchanged, and the same protocol run on our laptop (section "Laptop"):
 
 - **v1** (`measure/results/`): the first loader, which parsed the 14 zips on every start. Predictions: `measure/predictions.md`, written before any result.
-- **v2** (`measure/results_v2/`, 5 Nov 2026, 17:57-18:14 UTC): after review round 1. The loader parses the zips once into an extract (`data/clean/`), the load is one transaction, TCP keepalives are set. **Nothing was predicted before v2** (review round 2): its new rows are marked "not predicted".
-- **v3** (`measure/results_v3/`, 20:27:53-20:45:42 UTC): after review round 2. The extract name carries `clean_version`, and a later start returns before the zips are checked. Predictions: `measure/predictions_v3.md`, committed at 20:27:31 (`dcbefbf`), 19 s before the first line of `results_v3/benchmark_log.txt`. Verdicts: `measure/results_v3/verdicts.md`.
+- **v2** (`measure/results_v2/`, 5 Nov 2026, 17:57-18:14 UTC): after our first round of checks. The loader parses the zips once into an extract (`data/clean/`), the load is one transaction, TCP keepalives are set. **Nothing was predicted before v2** (noticed in our second round of checks): its new rows are marked "not predicted".
+- **v3** (`measure/results_v3/`, 20:27:53-20:45:42 UTC): after our second round of checks. The extract name carries `clean_version`, and a later start returns before the zips are checked. Predictions: `measure/predictions_v3.md`, committed at 20:27:31 (`dcbefbf`), 19 s before the first line of `results_v3/benchmark_log.txt`. Verdicts: `measure/results_v3/verdicts.md`.
 
 **Machine:** 4 vCPU Intel Xeon @ 2.80 GHz, 15.7 GiB RAM, Ubuntu 24.04.5 cloud VM (not a laptop), Docker 29.9.2, Compose 5.6.1, PostgreSQL 16.15, loader on Python 3.12.16 with ijson 3.6.0 (`yajl2_c`) and psycopg 3.3.6. The postgres, python and loader image ids are recorded (the app's is not) because `postgres:16` and `python:3.12-slim` move (`results_v2/machine.txt`, `results_v3/machine.txt`: the postgres and python ids are the same in both). Here `python:3.12-slim` is a VM-only variant with the proxy's CA bundle (`docs/environment.md`, item 3). **Everything ran in Docker.**
 
@@ -60,9 +60,31 @@ All in `measure/results_experiments/`, on the v2 code.
 - **App memory with a browser** (playwright at 100%: 16 searches with drill-down in 41.5 s, 0 errors). The app goes from a 46.5 MiB idle median to a 138.4 MiB peak and stays at 132.8 MiB after the browser closes. `db` peaks at 217.8 MiB while the browser ran (218.8 MiB after it closed). Samples are about 1 s apart (`app_memory/output.txt`, `peaks.csv`).
 - **Round effect in v1.** Round 1 was slower by +6.18 / +7.37 / +6.20 s of parse at 25 / 50 / 100%. Each size ran once per round, so interleaving cancels this between sizes, and removing it cuts the parse std from 4.40 / 4.32 / 3.75 to 2.34 / 1.08 / 1.37 s. The cause is unknown; the load average was 0.21 before round 1 started (`round_effect/output.txt`, `by_round.csv`). In v2 and v3 the first run of a series is again often the slowest (COPY above; v3 full runs, Q28); we did not add an untimed warm-up start.
 
-## What each review round changed
+## Laptop, 18 Nov 2026 (Apple M4, 16 GB)
 
-**Round 1 → v2.** The loader now parses the zips once into a 74.4 MB extract, so a later start at 100% fell from 89.7 to 21.3 s and getting the rows from 67.4 to 1.25 s (the first start, 89.7 → 81.5 s, ran last, so that comparison is not like for like). The whole load is now one transaction, 's "a group of changes that happens completely, or not at all": a loader killed during COPY left the previous 78,472 labels intact, and because the loader now sets TCP keepalives, the dead session was gone 25.5 s after the kill instead of still holding its lock 5.5 minutes later (`docs/evidence/v2_atomic.txt`). On the restart path v1 never ran, `/_stcore/health` answered in 1.8 s, a zip of the wrong size is now re-checked against the live manifest, both images pin 36 + 4 packages (`ffdd697`), and the drill-down follows the Rx/OTC choice ("9 of 1 labels" → "1 of 1", `docs/evidence/v2_drilldown_filter.txt`). One cost is new: a 25% parse now peaks at 178 MiB RSS instead of 74 MiB, because it keeps all four buckets for the extract (`docs/evidence/v2_second_start_25pct.txt`).
+`measure/results_laptop/`, the same protocol as v3: 3 sizes × 3 runs, sizes interleaved, plus 3 first starts at 100%. The cache drop is Linux only, so it was skipped. Apple M4, 10 cores, 16 GB RAM (7.7 GB for Docker), macOS 27.0.1, Docker 29.8.2 (`results_laptop/machine.txt`). Export of 17 Nov 2026, downloaded on 18 Nov: more labels than in the cloud runs (84,363 kept, against 78,472), so the two columns compare the machines only roughly.
+
+| Step | 25% | 50% | 100% | Cloud VM, v3, 100% | What it means |
+|---|---|---|---|---|---|
+| Start, `up` to page ready | 7.12 s | 8.47 s | 11.11 s | 22.37 s | about 5.0 s at every size do not grow (5.10 / 5.07 / 5.01 s): database start and Streamlit |
+| Load (pipeline) | 2.02 s | 3.39 s | 6.10 s | 15.17 s | 3.0× for 4× the data |
+| read the extract | 0.52 s | 0.54 s | 0.57 s | 1.29 s | almost flat: one 80 MB file |
+| COPY | 1.10 s | 2.17 s | 4.47 s | 10.90 s | linear: 4.1× for 4× the rows |
+| GIN index build | 0.13 s | 0.27 s | 0.56 s | 1.56 s | linear |
+| First start (parse the 14 zips) | | | 37.66 s (parse 25.88 s) | 87.44 s (parse 64.09 s) | the same work at every size: every zip is read |
+| Migraine query, with the index | 0.51 ms | 0.37 ms | 0.53 ms | 3.22 ms | flat: only the matching labels are read |
+| Migraine query, no index | 5.92 ms | 12.47 ms | 27.19 ms | 82.3 ms | grows with the table: 4.6× for 4× the data |
+| Migraine query, words computed at query time | 490 ms | 650 ms | 1,284 ms | 3.21 s | why the stemmed words are stored |
+| Database on disk | 44.0 MB | 78.7 MB | 148.1 MB | 138.3 MB | 7.9% of the 1,875 MB of zips; GIN index 12.4 MB |
+| Peak memory, loader | 89 MiB | 152 MiB | 279 MiB | 257 MiB | grows with the rows held before COPY |
+| Peak memory, db, during the queries | 67 MiB | 98 MiB | 162 MiB | 269 MiB | |
+| Peak memory, app | 47 MiB | 47 MiB | 48 MiB | 53 MiB | flat: it holds only what one page shows |
+
+The laptop is about twice as fast as the cloud VM (4 vCPU Xeon) at every step, and the shape is the same: the same steps grow and the same stay flat. Does time double when the data doubles? Only for the work done on each label (COPY, the index build, the query without the index); the whole start does not, because of the fixed part.
+
+## What each round of checks changed
+
+**Round 1 → v2.** The loader now parses the zips once into a 74.4 MB extract, so a later start at 100% fell from 89.7 to 21.3 s and getting the rows from 67.4 to 1.25 s (the first start, 89.7 → 81.5 s, ran last, so that comparison is not like for like). The whole load is now one transaction, "a group of changes that happens completely, or not at all": a loader killed during COPY left the previous 78,472 labels intact, and because the loader now sets TCP keepalives, the dead session was gone 25.5 s after the kill instead of still holding its lock 5.5 minutes later (`docs/evidence/v2_atomic.txt`). On the restart path v1 never ran, `/_stcore/health` answered in 1.8 s, a zip of the wrong size is now re-checked against the live manifest, both images pin 36 + 4 packages (`ffdd697`), and the drill-down follows the Rx/OTC choice ("9 of 1 labels" → "1 of 1", `docs/evidence/v2_drilldown_filter.txt`). One cost is new: a 25% parse now peaks at 178 MiB RSS instead of 74 MiB, because it keeps all four buckets for the extract (`docs/evidence/v2_second_start_25pct.txt`).
 
 **Round 2 → v3** (merge `7032f94`; evidence `docs/evidence/v3_*.txt`). Behaviour, not speed:
 - The extract key: a changed cleaning rule now means a new parse (main reused the stale extract, kept=19546; v3 parsed, kept=19202, 67.7 s at 25%, `v3_extract_key.txt`).
