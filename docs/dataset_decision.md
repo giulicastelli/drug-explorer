@@ -6,7 +6,7 @@ The question was fixed first: **"Which drugs treat this condition?"** The user t
 
 We chose openFDA because it was the most comprehensive source, with the most data available, and that made the work simpler.
 
-Ten drug datasets were checked on 5 Nov 2026 by downloading the data on the cloud VM (and from the class notes "CI - dataset per atlante farmaci.md"). The openFDA NDC file was downloaded and read for this page. Facts come from pages fetched or commands run; anything not verified says so and is excluded from the winner. Scores 1-5 on nine criteria (a fit, b four data tests, c question, d database reason, e measurement richness, f fits ~3 containers, g defensible by five, h risk, inverse, i Italian/European angle). Criterion c is scored for **this** question: a dataset without indications cannot answer it.
+Ten drug datasets were checked on 5 Nov 2026 by downloading the data on the cloud VM. The counts on this page are from the export of 5 Nov 2026 (78,472 usable labels); the README's are from the export of 17 Nov (84,363). The openFDA NDC file was downloaded and read for this page. Facts come from pages fetched or commands run; anything not verified says so and is excluded from the winner. Scores 1-5 on nine criteria (a fit, b four data tests, c question, d database reason, e measurement richness, f fits ~3 containers, g defensible by five, h risk, inverse, i Italian/European angle). Criterion c is scored for **this** question: a dataset without indications cannot answer it.
 
 ## Verified facts
 

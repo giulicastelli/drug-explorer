@@ -14,7 +14,7 @@ The source is `sql/schema.sql` (tables), `sql/indexes.sql` (the GIN index) and `
 ```
 labels  (set_id PK, label_id, version, effective_date, product_type, substance_key,
          generic_name, brand_name, manufacturer, route, pharm_class_epc, bucket,
-         indications, tsv GENERATED)                    19,546 rows at 25%, 78,472 at 100%
+         indications, tsv GENERATED)                    19,546 rows at 25%, 78,472 at 100% (export of 5 Nov; 84,363 at 100% in the export of 17 Nov, README)
    n ── 1   (by value: labels.substance_key = drugs.substance_key)
 drugs   (substance_key PK, n_labels, n_rx, n_otc, pharm_class_epc)    3,554, 8,157 rows
 ```
