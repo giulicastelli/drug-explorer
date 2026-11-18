@@ -22,7 +22,7 @@ The openFDA drug label bulk export: manifest https://api.fda.gov/download.json, 
 ## Architecture
 ![Architecture](docs/architecture.png)
 
-`docker compose up` starts three containers. `db` (PostgreSQL 16) starts first; `loader` (Python) waits until the database is ready, downloads and cleans the labels, loads them in one transaction with a GIN index for the word search, and exits; `app` (Streamlit, the only open port) starts only after a successful load. The containers pass data only through the database. Why PostgreSQL: `docs/schema.md`.
+`docker compose up` starts three containers. `db` (PostgreSQL 16) starts first; `loader` (Python) waits until the database is ready, downloads and cleans the labels, loads them in one transaction with a GIN index for the word search, and exits; `app` (Streamlit, the only open port) starts only after a successful load. The containers pass data only through the database. We chose PostgreSQL because, once the loader keeps 13 fields, every label has the same columns, and the work is a word search plus a count per ingredient, which PostgreSQL does with a GIN index (more in `docs/schema.md`).
 
 ## Measurements
 Apple M4, 10 cores, 16 GB RAM (7.7 GB for Docker), macOS 27.0.1, Docker 29.8.2. Mean of 3 runs per size; the 25/50/100% samples are fixed subsets of the labels. Script and protocol: `measure/benchmark.py`, `measure/README.md`.
