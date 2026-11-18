@@ -1,0 +1,30 @@
+Nested Loop  (cost=50.25..91.97 rows=5 width=120) (actual time=3.006..3.171 rows=25 loops=1)
+  Buffers: shared hit=1060
+  ->  Limit  (cost=49.84..49.86 rows=5 width=59) (actual time=2.978..2.985 rows=25 loops=1)
+        Buffers: shared hit=960
+        ->  Sort  (cost=49.84..49.86 rows=5 width=59) (actual time=2.976..2.980 rows=25 loops=1)
+              Sort Key: (count(*)) DESC, labels.substance_key
+              Sort Method: quicksort  Memory: 29kB
+              Buffers: shared hit=960
+              ->  GroupAggregate  (cost=49.65..49.78 rows=5 width=59) (actual time=2.820..2.939 rows=45 loops=1)
+                    Group Key: labels.substance_key
+                    Buffers: shared hit=960
+                    ->  Sort  (cost=49.65..49.66 rows=5 width=38) (actual time=2.764..2.786 rows=343 loops=1)
+                          Sort Key: labels.substance_key
+                          Sort Method: quicksort  Memory: 42kB
+                          Buffers: shared hit=960
+                          ->  Bitmap Heap Scan on labels  (cost=30.24..49.59 rows=5 width=38) (actual time=0.373..2.528 rows=343 loops=1)
+                                Recheck Cond: (tsv @@ '''type'' <-> ''2'' <-> ''diabet'''::tsquery)
+                                Rows Removed by Index Recheck: 35
+                                Heap Blocks: exact=338
+                                Buffers: shared hit=960
+                                ->  Bitmap Index Scan on labels_tsv_gin  (cost=0.00..30.24 rows=5 width=0) (actual time=0.304..0.305 rows=378 loops=1)
+                                      Index Cond: (tsv @@ '''type'' <-> ''2'' <-> ''diabet'''::tsquery)
+                                      Buffers: shared hit=8
+  ->  Index Scan using drugs_pkey on drugs d  (cost=0.41..8.42 rows=1 width=154) (actual time=0.007..0.007 rows=1 loops=25)
+        Index Cond: (substance_key = labels.substance_key)
+        Buffers: shared hit=100
+Planning:
+  Buffers: shared hit=1
+Planning Time: 0.403 ms
+Execution Time: 3.231 ms

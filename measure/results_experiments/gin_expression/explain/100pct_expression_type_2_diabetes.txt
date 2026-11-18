@@ -1,0 +1,30 @@
+Nested Loop  (cost=118.64..269.93 rows=18 width=128) (actual time=448.691..448.834 rows=25 loops=1)
+  Buffers: shared hit=2375
+  ->  Limit  (cost=118.23..118.28 rows=18 width=59) (actual time=448.668..448.673 rows=25 loops=1)
+        Buffers: shared hit=2275
+        ->  Sort  (cost=118.23..118.28 rows=18 width=59) (actual time=448.666..448.669 rows=25 loops=1)
+              Sort Key: (count(*)) DESC, labels.substance_key
+              Sort Method: top-N heapsort  Memory: 29kB
+              Buffers: shared hit=2275
+              ->  GroupAggregate  (cost=117.36..117.86 rows=18 width=59) (actual time=448.422..448.641 rows=66 loops=1)
+                    Group Key: labels.substance_key
+                    Buffers: shared hit=2275
+                    ->  Sort  (cost=117.36..117.41 rows=18 width=38) (actual time=448.409..448.457 rows=1337 loops=1)
+                          Sort Key: labels.substance_key
+                          Sort Method: quicksort  Memory: 117kB
+                          Buffers: shared hit=2275
+                          ->  Bitmap Heap Scan on labels  (cost=43.08..116.99 rows=18 width=38) (actual time=1.106..447.514 rows=1337 loops=1)
+                                Recheck Cond: (to_tsvector('english'::regconfig, indications) @@ '''type'' <-> ''2'' <-> ''diabet'''::tsquery)
+                                Rows Removed by Index Recheck: 143
+                                Heap Blocks: exact=1280
+                                Buffers: shared hit=2275
+                                ->  Bitmap Index Scan on labels_tsv_gin  (cost=0.00..43.07 rows=18 width=0) (actual time=0.802..0.803 rows=1480 loops=1)
+                                      Index Cond: (to_tsvector('english'::regconfig, indications) @@ '''type'' <-> ''2'' <-> ''diabet'''::tsquery)
+                                      Buffers: shared hit=16
+  ->  Index Scan using drugs_pkey on drugs d  (cost=0.41..8.43 rows=1 width=201) (actual time=0.006..0.006 rows=1 loops=25)
+        Index Cond: (substance_key = labels.substance_key)
+        Buffers: shared hit=100
+Planning:
+  Buffers: shared hit=1
+Planning Time: 0.303 ms
+Execution Time: 448.933 ms
