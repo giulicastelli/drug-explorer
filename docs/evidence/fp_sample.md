@@ -78,7 +78,7 @@ Source: `raw/download_log.csv` and `raw/download_stdout.txt`, written by `script
 | drug-label-0014 | 24,340,404 | 1.41 | 2,907 |
 | **total** | **1,858,907,416** | **85.67** | **262,907** |
 
-The totals are our arithmetic on the CSV. 85.67 s is the sum of the per-file times; `REPORT.md` rounds it to 85.7 s. That works out to 21.7 MB/s (arithmetic). The per-file rate in `download_stdout.txt` is 17.3-23.0 MB/s.
+The totals are our arithmetic on the CSV. 85.67 s is the sum of the per-file times; elsewhere it is rounded to 85.7 s. That works out to 21.7 MB/s (arithmetic). The per-file rate in `download_stdout.txt` is 17.3-23.0 MB/s.
 
 The loader's own download path fetched only `download.json` and partition 14 (D-7). In v2 it also fetched partition 14 again in a failure test (`docs/evidence/v2_corrupt_zip.txt`, case c1).
 
@@ -100,7 +100,7 @@ Sources: `work/stats_pass1.json` (written by `scripts/extract.py`), `work/stats_
 
 The shares are our arithmetic. The share of labels with a generic name varies by partition: 19.1% to 39.8% in partitions 1-13, and 75.5% in the small partition 14 (`partition_coverage.txt`). That is why the 25/50/100% samples are not chosen by file (D-2).
 
-**Where the class is missing.** We checked `REPORT.md`'s list ourselves on 5 Nov 2026, counting rows of `work/labels_clean.csv` with a non-empty `pharm_class_epc`, in one Python pass. None of the labels of these ingredients has a class: GABAPENTIN (375 labels), LISINOPRIL (150), METOPROLOL SUCCINATE (159), METOPROLOL TARTRATE (176) and SUMATRIPTAN SUCCINATE (74). The 8 labels whose ingredient is plain "SUMATRIPTAN" all have one.
+**Where the class is missing.** We checked the list ourselves on 5 Nov 2026, counting rows of `work/labels_clean.csv` with a non-empty `pharm_class_epc`, in one Python pass. None of the labels of these ingredients has a class: GABAPENTIN (375 labels), LISINOPRIL (150), METOPROLOL SUCCINATE (159), METOPROLOL TARTRATE (176) and SUMATRIPTAN SUCCINATE (74). The 8 labels whose ingredient is plain "SUMATRIPTAN" all have one.
 
 ## 5. Query times on a local PostgreSQL, no Docker
 
