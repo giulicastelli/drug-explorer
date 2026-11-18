@@ -1,4 +1,4 @@
-"""v2 against v3: the same protocol on the code before and after the round-2 fixes.
+"""v2 against v3: the same protocol on the code before and after the second round of fixes.
 
     python measure/charts_v2_v3.py      # writes measure/results_v3/v2_vs_v3.png
 

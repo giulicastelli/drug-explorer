@@ -2,7 +2,7 @@
 
 Benchmark v1 read the app's memory while nobody used it: its query phase runs
 bench_queries.py in the loader image, and the app only answered /_stcore/health
-(measure/predictions.md P32; review round 1). Here a browser uses the page.
+(measure/predictions.md P32). Here a browser uses the page.
 
 One fresh stack at 100% (docker compose up -d: db, loader from the extract, app), then
 docker stats --no-stream every 0.5 s (benchmark.py's MemorySampler) in three phases:

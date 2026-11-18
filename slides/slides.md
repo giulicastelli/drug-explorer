@@ -585,7 +585,7 @@ Everything together is far below an 8 gigabyte laptop.
 
 </div>
 
-<p class="small"><code>docs/evidence/v2_atomic.txt</code>, <code>v2_second_start_25pct.txt</code>, <code>v2_second_start_100pct.txt</code>, <code>v3_extract_key.txt</code> (k0 on <code>b5ecc7c</code>, k3 on v3; found by review round 2); <code>measure/results/summary.csv</code>, <code>measure/results_v2/summary.csv</code>. The 65.6% of labels dropped for no ingredient name: slide 2.</p>
+<p class="small"><code>docs/evidence/v2_atomic.txt</code>, <code>v2_second_start_25pct.txt</code>, <code>v2_second_start_100pct.txt</code>, <code>v3_extract_key.txt</code> (k0 on <code>b5ecc7c</code>, k3 on v3; found by our own checks); <code>measure/results/summary.csv</code>, <code>measure/results_v2/summary.csv</code>. The 65.6% of labels dropped for no ingredient name: slide 2.</p>
 
 <!--
 SPEAKER: Role A. TIME: 0:30. Section 5, What went wrong, 2:00 in total. Running total 11:30 of 15:00.
@@ -731,7 +731,7 @@ Thank you. We are ready for your questions.
 | 14 | Loading problems | What went wrong | A | 0:30 |
 | 15 | Output problems | What went wrong | C | 0:30 |
 | 16 | Measurement problems | What went wrong | E | 0:30 |
-| 17 | The two review rounds | What went wrong | D | 0:30 |
+| 17 | What we found and fixed | What went wrong | D | 0:30 |
 | 18 | Who did what | Who did what | A-E | 2:00 |
 
 </div>

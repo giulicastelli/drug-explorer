@@ -161,7 +161,7 @@ class MemorySampler(threading.Thread):
     Keeps every sample (CSV) and the peak per (phase, service).
     One --no-stream call takes about 2 s (the daemon waits for a fresh reading),
     so a new call starts every 0.5 s and a few of them overlap. Calls that finish together
-    return the same reading: it is written once (v2 wrote it once per call, review round 2),
+    return the same reading: it is written once (v2 wrote it once per call),
     so distinct readings are about 1 s apart, not 0.5 s. The peak is the same either way."""
 
     def __init__(self, out_csv, context):
@@ -416,7 +416,7 @@ def write_summary():
     """n, mean, min, max, std, median per (size, mode, step, unit). The _repN suffix of the query
     steps is dropped, so 3 runs x 3 repetitions = 9 values per query (on the fly: 3 runs x 1).
     The pooled std of those 9 mixes the spread inside a run (repetitions on a warm cache) with
-    the spread between runs (fresh volume, new load): first review round. So for the
+    the spread between runs (fresh volume, new load): noticed in our first round of checks. So for the
     queries, runs = number of runs, run_mean_mean / run_mean_std = mean and std of the 3 per-run means."""
     path = OUT / "raw_runs.csv"
     if not path.exists():

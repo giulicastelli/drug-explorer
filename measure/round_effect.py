@@ -1,4 +1,4 @@
-"""Round effect in benchmark v1 (review round 1): round 1 was the slowest run
+"""Round effect in benchmark v1 (from our first round of checks): round 1 was the slowest run
 at every size. Does the interleaving cancel it across sizes, and what is left of the growth
 with the size once each size is compared inside its own round?
 

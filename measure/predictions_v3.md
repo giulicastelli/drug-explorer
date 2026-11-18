@@ -1,6 +1,6 @@
 # Predictions for benchmark v3, written before the runs
 
-"Predict, then verify." Review round 2: nothing was predicted before benchmark v2. This file is committed on `add-benchmark-v3` **before** `measure/benchmark.py` writes anything into `measure/results_v3/`; the commit time and the first line of `results_v3/benchmark_log.txt` show the order. Every number in the tables is a **prediction**; the reasons are Judgement unless they name a file. Verdicts after the runs: `measure/results_v3/verdicts.md`, with the README's rule (gap = (measured − predicted) / predicted; |gap| ≤ 10% confirmed, ≤ 25% close, else missed).
+"Predict, then verify." Our second round of checks noted that nothing was predicted before benchmark v2. This file is committed on `add-benchmark-v3` **before** `measure/benchmark.py` writes anything into `measure/results_v3/`; the commit time and the first line of `results_v3/benchmark_log.txt` show the order. Every number in the tables is a **prediction**; the reasons are Judgement unless they name a file. Verdicts after the runs: `measure/results_v3/verdicts.md`, with the README's rule (gap = (measured − predicted) / predicted; |gap| ≤ 10% confirmed, ≤ 25% close, else missed).
 
 ## What changed between v2 and v3 (the code the benchmark runs)
 
@@ -69,7 +69,7 @@ How the predictions were made (Judgement): at 25% and 50%, the v2 mean, raised a
 |---|---|---|---|---|
 | Q26 | `docker_stats_samples.csv`: rows with the same (size, run, mode, phase, t_s, container, mem, cpu) | 0 | new | `d794808` writes a reading once per pass. |
 | Q27 | `docker_stats_samples.csv`: rows in all | 1,400 (1,150-1,700) | new | v2 had 1,413 unique of 2,791; the runs are as long as v2's. |
-| Q28 | The first run of the 25% series has the longest `full_run` of that series (review round 2, finding (b), seen in v2) | yes, low confidence | v2 (yes: 12.33 vs 11.63 / 11.15 s) | Judgement: in v2 the first run came right after `compose build`; in v3 too, so the same warm-up effect is expected. A coin toss if it was chance. |
+| Q28 | The first run of the 25% series has the longest `full_run` of that series (noticed in our second round of checks, seen in v2) | yes, low confidence | v2 (yes: 12.33 vs 11.63 / 11.15 s) | Judgement: in v2 the first run came right after `compose build`; in v3 too, so the same warm-up effect is expected. A coin toss if it was chance. |
 
 ## What would surprise us (and what we would check)
 

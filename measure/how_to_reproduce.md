@@ -26,7 +26,7 @@ python3 measure/benchmark.py --drop-caches            # 3 sizes x 3 runs = 9 ful
 
 On a Mac `--drop-caches` is skipped with a note in every run (`os_cache_dropped = 0`): it needs Linux and root. The runs are still interleaved, so cache state does not line up with size.
 
-**Benchmark v2** (after the review fixes; results in `measure/results_v2/`, v1 in `measure/results/` is kept as the "before"):
+**Benchmark v2** (after the fixes of our first round of checks; results in `measure/results_v2/`, v1 in `measure/results/` is kept as the "before"):
 
 ```bash
 python3 measure/benchmark.py --drop-caches --first-start 3 --out measure/results_v2
@@ -37,7 +37,7 @@ python3 measure/benchmark.py --drop-caches --first-start 3 --out measure/results
 - The load average is read twice: **before `down -v`** (`machine_load_1min_before_down`: the tail of the previous run) and **after `down -v`, the cache drop and a 30 s settle**, just before `up` (`machine_load_1min_after_settle`). v1 read it once, right after `down -v` and the cache drop (`machine_load_1min`), so it included their own work. The 1-minute load average decays with a 1-minute time constant: 30 s lowers what `down -v` and `sync` add, it does not remove it.
 - The `--extra-tsv-after` runs are gone: the tsv during/after COPY was measured in v1 (D-9). To re-run v1 exactly: `git show d3c7887:measure/benchmark.py > /tmp/benchmark_v1.py` and run it with `EXTRACT_CACHE=0` in the shell, because the v2 loader reads the extract by default.
 
-**Benchmark v3** (after review round 2; results in `measure/results_v3/`; v1 and v2 stay unchanged as the "before"):
+**Benchmark v3** (after our second round of checks; results in `measure/results_v3/`; v1 and v2 stay unchanged as the "before"):
 
 ```bash
 git show dcbefbf --stat                               # the predictions were committed before the runs
@@ -150,7 +150,7 @@ docker compose exec db sh -c 'psql -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT 
 
 ## 3. The v2 experiments: one change each
 
-These scripts ran after the first review round (D-28, D-35, D-36, D-37), with the outputs in `measure/results_experiments/`. Each folder has a `summary.md`: what changed, the protocol, the numbers and what they mean. The first three use their own compose projects (`de-exp`; `app_memory.py` uses port 8571) and `down -v` their own volume; run them alone on the machine, as the benchmark ran. Each expects the extract in `data/clean/` (without it, the first load parses the zips and writes it). The commands below overwrite the committed output files, so write to another file to compare.
+These scripts ran after our first round of checks (D-28, D-35, D-36, D-37), with the outputs in `measure/results_experiments/`. Each folder has a `summary.md`: what changed, the protocol, the numbers and what they mean. The first three use their own compose projects (`de-exp`; `app_memory.py` uses port 8571) and `down -v` their own volume; run them alone on the machine, as the benchmark ran. Each expects the extract in `data/clean/` (without it, the first load parses the zips and writes it). The commands below overwrite the committed output files, so write to another file to compare.
 
 ```bash
 bash measure/gin_expression.sh > measure/results_experiments/gin_expression/runs.txt          # stored tsv vs GIN expression index, 25% and 100%, A B B A A B
@@ -163,7 +163,7 @@ python3 measure/round_effect.py > measure/results_experiments/round_effect/outpu
 
 `gin_expression.sh` uses the loader mode `TSV_MODE=expression`, a measurement mode only: the app is never started in it.
 
-## 4. The v3 evidence runs (review round 2)
+## 4. The v3 evidence runs (second round of checks)
 
 These are not benchmark runs: each tests one behaviour of the v3 loader, before (`main` at `b5ecc7c`, image `de-v3-loader:before`) and after, on the compose project `de-v3` (`APP_PORT=8581`). Each output file starts with the exact commands. The ones that need a broken or missing file work on **copies** of the zips in a temporary folder, never on `data/raw` (whose zips are hard links to the research download, D-7); `data/raw` is mounted read-only where it is used.
 

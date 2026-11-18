@@ -1,4 +1,4 @@
-"""v1 against v2: the same three sizes, before and after the review fixes (extract cache, 565a0a9).
+"""v1 against v2: the same three sizes, before and after the fixes of our first round of checks (extract cache, 565a0a9).
 
     python measure/charts_v1_v2.py      # writes measure/results_v2/v1_vs_v2.png
 

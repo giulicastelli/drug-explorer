@@ -1,6 +1,6 @@
 # Round effect in benchmark v1: one value per (size, round) (`measure/round_effect.py`)
 
-**The question** (review round 1): in benchmark v1, round 1 was the slowest run at every size. Does the interleaving cancel it across sizes, and what is left of the growth with the size once each size is compared inside its own round?
+**The question** (from our first round of checks): in benchmark v1, round 1 was the slowest run at every size. Does the interleaving cancel it across sizes, and what is left of the growth with the size once each size is compared inside its own round?
 
 **What changed, one thing:** the grouping, not the system. Nothing was run again. The script takes v1's raw values and lays them out by round (one run of every size per round) instead of averaging the 3 runs of each size. v1 stays unchanged: it is the "before".
 
