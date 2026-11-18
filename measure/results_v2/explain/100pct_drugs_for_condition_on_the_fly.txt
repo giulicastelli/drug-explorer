@@ -1,0 +1,33 @@
+Nested Loop  (cost=18417.08..18619.36 rows=25 width=128) (actual time=2928.556..2933.911 rows=25 loops=1)
+  Buffers: shared hit=20226
+  ->  Limit  (cost=18416.67..18416.73 rows=25 width=59) (actual time=2928.528..2933.714 rows=25 loops=1)
+        Buffers: shared hit=20126
+        ->  Sort  (cost=18416.67..18417.61 rows=377 width=59) (actual time=2928.526..2933.709 rows=25 loops=1)
+              Sort Key: (count(*)) DESC, labels.substance_key
+              Sort Method: quicksort  Memory: 31kB
+              Buffers: shared hit=20126
+              ->  Finalize GroupAggregate  (cost=18356.89..18406.03 rows=377 width=59) (actual time=2928.411..2933.679 rows=48 loops=1)
+                    Group Key: labels.substance_key
+                    Buffers: shared hit=20126
+                    ->  Gather Merge  (cost=18356.89..18399.00 rows=326 width=59) (actual time=2928.400..2933.650 rows=87 loops=1)
+                          Workers Planned: 2
+                          Workers Launched: 2
+                          Buffers: shared hit=20126
+                          ->  Partial GroupAggregate  (cost=17356.86..17361.35 rows=163 width=59) (actual time=2922.380..2922.423 rows=29 loops=3)
+                                Group Key: labels.substance_key
+                                Buffers: shared hit=20126
+                                ->  Sort  (cost=17356.86..17357.27 rows=163 width=38) (actual time=2922.366..2922.376 rows=227 loops=3)
+                                      Sort Key: labels.substance_key
+                                      Sort Method: quicksort  Memory: 37kB
+                                      Buffers: shared hit=20126
+                                      Worker 0:  Sort Method: quicksort  Memory: 35kB
+                                      Worker 1:  Sort Method: quicksort  Memory: 37kB
+                                      ->  Parallel Seq Scan on labels  (cost=0.00..17350.88 rows=163 width=38) (actual time=16.838..2921.327 rows=227 loops=3)
+                                            Filter: (to_tsvector('english'::regconfig, indications) @@ '''migrain'''::tsquery)
+                                            Rows Removed by Filter: 25931
+                                            Buffers: shared hit=20052
+  ->  Index Scan using drugs_pkey on drugs d  (cost=0.41..8.11 rows=1 width=200) (actual time=0.007..0.007 rows=1 loops=25)
+        Index Cond: (substance_key = labels.substance_key)
+        Buffers: shared hit=100
+Planning Time: 0.291 ms
+Execution Time: 2933.977 ms

@@ -1,0 +1,25 @@
+os: Ubuntu 24.04.5 LTS (kernel 6.18.44-fc-v236, x86_64)
+cpu: Intel(R) Xeon(R) Processor @ 2.80GHz
+cores: 4
+ram_gib: 15.7
+docker: 29.9.2
+docker_cpus: 4
+docker_mem_gib: 15.7
+docker compose: 5.6.1
+
+image sizes (docker image inspect):
+  drug-explorer-loader: 220 MB
+  drug-explorer-app: 829 MB
+  postgres:16: 636 MB
+
+exact versions behind the numbers (the tags postgres:16 and python:3.12-slim move):
+  postgres:16 image id: sha256:5db6dac2ef5dcff512f4f00a009c3c332b9f2f28f24277175bf3e4a3d02ef83a
+  python:3.12-slim image id: sha256:d847d0ccfab80a7a6fe543890a917d6013109bcfca1ee665faa4b9bfb23bda37
+  drug-explorer-loader image id: sha256:35620bad279081c2d9382a65c1288bf9ac92d77fb0501830d24d69e49bbf16e8
+  postgres (PostgreSQL) 16.15 (Debian 16.15-1.pgdg13+2)
+  loader: Python 3.12.16 | ijson 3.6.0 yajl2_c | psycopg 3.3.6
+
+raw input (data/raw): 14 zip files, 1,858,907,416 bytes zipped, 8,749,654,318 bytes of JSON inside
+drop OS cache before every run: True
+data/clean (the extract) kept between runs: yes, except in first_start runs, which delete it first
+load average: os.getloadavg() before down -v, and again after down -v, the cache drop and a 30 s settle, just before up
