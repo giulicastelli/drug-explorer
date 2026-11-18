@@ -1,0 +1,50 @@
+[bench 17:46:23] load average before: ['0.63', '0.77', '0.62']
+time="2026-11-05T17:46:23Z" level=warning msg="Warning: No resource found to remove for project \"de-exp\"."
+ Volume de-exp_dbdata Creating 
+ Network de-exp_default Creating 
+ Network de-exp_default Creating 
+ Volume de-exp_dbdata Creating 
+ Volume de-exp_dbdata Created 
+ Volume de-exp_dbdata Created 
+ Network de-exp_default Created 
+ Network de-exp_default Created 
+ Container de-exp-db-1 Creating 
+ Container de-exp-db-1 Created 
+ Container de-exp-loader-1 Creating 
+ Container de-exp-loader-1 Created 
+ Container de-exp-app-1 Creating 
+ Container de-exp-app-1 Created 
+ Container de-exp-db-1 Starting 
+ Container de-exp-db-1 Started 
+ Container de-exp-db-1 Waiting 
+ Container de-exp-db-1 Healthy 
+ Container de-exp-loader-1 Starting 
+ Container de-exp-loader-1 Started 
+ Container de-exp-loader-1 Waiting 
+ Container de-exp-loader-1 Exited 
+ Container de-exp-app-1 Starting 
+ Container de-exp-app-1 Started 
+[bench 17:46:45] dashboard ready after 22.3 s
+[bench 17:47:47] browser part: 41.5 s, exit 0: {"seconds":41.056,"exceptions":0,"errors":[]} 
+ Container de-exp-app-1 Stopping 
+ Container de-exp-app-1 Stopped 
+ Container de-exp-app-1 Removing 
+ Container de-exp-app-1 Removed 
+ Container de-exp-loader-1 Stopping 
+ Container de-exp-loader-1 Stopped 
+ Container de-exp-loader-1 Removing 
+ Container de-exp-loader-1 Removed 
+ Container de-exp-db-1 Stopping 
+ Container de-exp-db-1 Stopped 
+ Container de-exp-db-1 Removing 
+ Container de-exp-db-1 Removed 
+ Volume de-exp_dbdata Removing 
+ Network de-exp_default Removing 
+ Network de-exp_default Removed 
+ Volume de-exp_dbdata Removed 
+[bench 17:48:10] app    idle     n= 40 median   46.5 MiB  max   52.4 MiB  max CPU 25.5%
+[bench 17:48:10] app    browser  n= 83 median  132.7 MiB  max  138.4 MiB  max CPU 123.7%
+[bench 17:48:10] app    after    n= 40 median  132.8 MiB  max  135.0 MiB  max CPU 14.3%
+[bench 17:48:10] db     idle     n= 40 median  168.1 MiB  max  208.2 MiB  max CPU 93.7%
+[bench 17:48:10] db     browser  n= 83 median  216.3 MiB  max  217.8 MiB  max CPU 20.7%
+[bench 17:48:10] db     after    n= 40 median  217.3 MiB  max  218.8 MiB  max CPU 8.2%
