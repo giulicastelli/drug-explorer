@@ -1,0 +1,127 @@
+# v3 startup breakdown: where the seconds of a later start at 100% go, measured, 3 runs
+# 2026-11-05 20:04:03 UTC (start of the runs), branch fix-round2-findings at e817dce (no code change in this commit), compose project de-v3 (APP_PORT=8581), machine: docs/environment.md
+# Protocol of measure/benchmark.py one_run (mode generated, 100%): down -v, sync + drop_caches, 30 s settle, docker compose up -d;
+# the extract data/clean/labels_2026-11-05_e2adc54e.csv was written by a first start just before (warm-up, not timed here).
+# Script: docs/evidence/v3_startup_breakdown.py (docker events, pipeline_timings, docker logs -t, HTTP polled every 0.05 s)
+
+$ python3 docs/evidence/v3_startup_breakdown.py 3
+run 1: up -d called 20:04:35.422 (local clock = UTC), returned after 22.38 s
+  docker event  +  0.382 s  db     create
+  docker event  +  0.425 s  loader create
+  docker event  +  0.473 s  app    create
+  docker event  +  0.762 s  db     start
+  docker event  +  3.888 s  db     health_status: healthy
+  docker event  +  4.447 s  loader start
+  docker event  + 22.143 s  loader die
+  docker event  + 22.370 s  app    start
+  loader first log line +  4.901 s
+  loader step   +  4.901 -> +  4.908 s  download (0.008 s)
+  loader step   +  4.901 -> + 21.624 s  total_with_download (16.724 s)
+  loader step   +  4.909 -> +  6.107 s  read_extract (1.199 s)
+  loader step   +  4.909 -> + 21.624 s  pipeline_total (16.716 s)
+  loader step   +  6.137 -> +  6.167 s  schema_and_truncate (0.031 s)
+  loader step   +  6.167 -> + 18.692 s  copy (12.525 s)
+  loader step   + 18.693 -> + 19.978 s  index_build (1.285 s)
+  loader step   + 19.979 -> + 20.236 s  build_drugs (0.258 s)
+  loader step   + 20.236 -> + 21.585 s  analyze (1.349 s)
+  loader step   + 21.623 -> + 21.624 s  commit (0.002 s)
+  first HTTP 200  /_stcore/health +23.619 s   / +23.626 s
+
+run 2: up -d called 20:05:32.282 (local clock = UTC), returned after 20.84 s
+  docker event  +  0.475 s  db     create
+  docker event  +  0.533 s  loader create
+  docker event  +  0.589 s  app    create
+  docker event  +  0.876 s  db     start
+  docker event  +  3.995 s  db     health_status: healthy
+  docker event  +  4.618 s  loader start
+  docker event  + 20.569 s  loader die
+  docker event  + 20.832 s  app    start
+  loader first log line +  5.041 s
+  loader step   +  5.041 -> +  5.047 s  download (0.006 s)
+  loader step   +  5.041 -> + 20.124 s  total_with_download (15.083 s)
+  loader step   +  5.047 -> +  6.260 s  read_extract (1.213 s)
+  loader step   +  5.047 -> + 20.124 s  pipeline_total (15.076 s)
+  loader step   +  6.291 -> +  6.330 s  schema_and_truncate (0.039 s)
+  loader step   +  6.330 -> + 17.154 s  copy (10.823 s)
+  loader step   + 17.154 -> + 18.872 s  index_build (1.718 s)
+  loader step   + 18.873 -> + 19.073 s  build_drugs (0.200 s)
+  loader step   + 19.073 -> + 20.092 s  analyze (1.018 s)
+  loader step   + 20.123 -> + 20.124 s  commit (0.001 s)
+  first HTTP 200  /_stcore/health +22.142 s   / +22.146 s
+
+run 3: up -d called 20:06:27.260 (local clock = UTC), returned after 22.39 s
+  docker event  +  0.452 s  db     create
+  docker event  +  0.526 s  loader create
+  docker event  +  0.589 s  app    create
+  docker event  +  0.875 s  db     start
+  docker event  +  3.967 s  db     health_status: healthy
+  docker event  +  4.556 s  loader start
+  docker event  + 22.157 s  loader die
+  docker event  + 22.381 s  app    start
+  loader first log line +  4.987 s
+  loader step   +  4.987 -> +  4.996 s  download (0.009 s)
+  loader step   +  4.987 -> + 21.655 s  total_with_download (16.669 s)
+  loader step   +  4.996 -> +  6.675 s  read_extract (1.679 s)
+  loader step   +  4.996 -> + 21.655 s  pipeline_total (16.659 s)
+  loader step   +  6.708 -> +  6.741 s  schema_and_truncate (0.033 s)
+  loader step   +  6.741 -> + 18.626 s  copy (11.886 s)
+  loader step   + 18.627 -> + 20.085 s  index_build (1.458 s)
+  loader step   + 20.086 -> + 20.294 s  build_drugs (0.208 s)
+  loader step   + 20.294 -> + 21.622 s  analyze (1.327 s)
+  loader step   + 21.654 -> + 21.655 s  commit (0.001 s)
+  first HTTP 200  /_stcore/health +23.756 s   / +23.760 s
+
+phase                                                                          run 1   run 2   run 3    mean
+up -d called -> db container created                                             0.382   0.475   0.452   0.436
+db created -> db started (all 3 containers are created first)                    0.380   0.401   0.423   0.401
+db started -> db healthy (initdb on the new volume; pg_isready every 3 s)        3.126   3.119   3.092   3.112
+db healthy -> loader started (compose sees service_healthy)                      0.560   0.624   0.589   0.591
+loader started -> first log line (Python start, imports)                         0.454   0.423   0.431   0.436
+download step (manifest reused; zips not checked)                                0.007   0.006   0.009   0.007
+read_extract                                                                     1.199   1.213   1.679   1.364
+connect to db + schema_and_truncate                                              0.060   0.070   0.065   0.065
+copy                                                                            12.525  10.824  11.886  11.745
+index_build                                                                      1.286   1.718   1.459   1.488
+build_drugs                                                                      0.259   0.201   0.209   0.223
+analyze                                                                          1.349   1.019   1.328   1.232
+load_info rows + commit                                                          0.039   0.032   0.034   0.035
+commit -> loader container died (step log, the migraine answer, exit)            0.519   0.446   0.502   0.489
+loader died -> app started (service_completed_successfully)                      0.227   0.263   0.224   0.238
+app started -> first 200 on /_stcore/health (Streamlit start)                    1.249   1.310   1.374   1.311
+first 200 on /_stcore/health -> first 200 on /                                   0.007   0.004   0.005   0.005
+TOTAL: up -d called -> first 200 on / (sum of the rows above)                   23.626  22.146  23.760  23.178
+up -d called -> first 200 on /_stcore/health (= full_run of the benchmark)      23.619  22.142  23.756  23.172
+pipeline_total (loader: everything after the download)                          16.716  15.076  16.659  16.151
+full_run - pipeline_total (the 'fixed part' of README / qa_bank A6)              6.903   7.066   7.096   7.022
+[exit code 0]
+
+The db row, split with the database's own log (run 3 only: its container was still there; docker logs -t de-v3-db-1):
+  container StartedAt 20:06:27.913 (docker inspect); start event +0.875 s = 20:06:28.135
+  'database system is ready to accept connections' (after initdb, final server) 20:06:29.625 = 1.49 s after the start event
+  health_status: healthy +3.967 s = 20:06:31.227 = 1.60 s after the database was ready (arithmetic)
+  So about half of the 3.1 s is initdb and the server start on the new volume, and half is waiting for the first
+  pg_isready probe, which Docker runs one interval (3 s) after the container starts.
+
+Where the fixed part goes (mean of the 3 runs; arithmetic on the table above; 7.021 s = 100%)
+  db started -> db healthy (initdb + first healthcheck after 3 s)   3.112 s   44.3%
+  app started -> Streamlit answers /_stcore/health                    1.311 s   18.7%
+  db healthy -> loader started                                       0.591 s    8.4%
+  commit -> loader container died (step log, answer query, exit)     0.489 s    7.0%
+  up -d -> db container created                                      0.436 s    6.2%
+  loader started -> first log line (Python start, imports)           0.436 s    6.2%
+  db created -> db started                                           0.401 s    5.7%
+  loader died -> app started                                         0.238 s    3.4%
+  download step (manifest reused, zips not checked)                  0.007 s    0.1%
+  The 9 rows add up to 6.904 / 7.067 / 7.096 s, and full_run - pipeline_total is 6.903 / 7.066 / 7.096 s: the fixed part
+  is fully attributed (the 1 ms differences are the step boundaries of pipeline_timings).
+  The page itself (/) answered 0.004-0.007 s after /_stcore/health in all 3 runs.
+
+Compared with the benchmark: at 100%, v2 had full_run - pipeline_total = 21.3205 - 14.4438 = 6.877 s (means in
+measure/results_v2/summary.csv; 6.65-6.88 s over the 3 sizes); here 6.90-7.10 s. The download step was 0.0116 s in v2 too
+(summary.csv), so skipping the zip checks changes nothing measurable in time; it changes the disk
+(v3_extract_without_zips.txt). The 3 full runs, 23.62 / 22.14 / 23.76 s, are longer than v2's 21.32 s because of the
+pipeline (COPY 12.53 / 10.82 / 11.89 s here, 10.62 s in v2), not of the fixed part; why COPY varied was not investigated.
+
+Judgement (not done, not measured): the largest single cost is the healthcheck's first probe, about 1.6 s per start. A
+healthcheck start_interval (more frequent probes during start_period) would cut most of it; the README's one-command start
+does not need it, so it is left as is.
