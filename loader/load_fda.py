@@ -291,7 +291,7 @@ def parse(files):
 # the rows (norm, first, bucket, clean, parse: names, drops, dedup of set_id) plus the columns
 # and the product types. A changed rule gives a new name, and the next start parses the zips
 # again instead of loading old rows. Why a hash and not a constant bumped by hand: the bump is
-# exactly the step that gets forgotten (review round 2). The price: a comment edited inside
+# exactly the step that gets forgotten (we noticed it in our second round of checks). The price: a comment edited inside
 # these functions also costs one parse (59.07 s at 100%, measure/results_v2/summary.csv).
 ROW_RULES = (norm, first, bucket, clean, parse)
 CLEAN_VERSION = hashlib.md5(("".join(inspect.getsource(f) for f in ROW_RULES)

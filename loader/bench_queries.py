@@ -31,7 +31,7 @@ RUN_ID = os.environ.get("RUN_ID", "bench-queries")
 CONDITIONS = ["migraine", "hypertension", "epilepsy", "asthma", "cancer"]   # fixed: the same every run
 DRILL_CONDITION = "migraine"
 # with_first | without_first: measure/benchmark.py alternates it between runs, so one index state
-# is not always measured first (template review finding).
+# is not always measured first.
 ORDER = os.environ.get("BENCH_ORDER", "with_first")
 REPS = {"with_index": 3, "without_index": 3, "on_the_fly": 1}
 results = []     # (step, seconds, rows, detail, started_at, finished_at), written at the end

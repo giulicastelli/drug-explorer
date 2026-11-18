@@ -1,6 +1,6 @@
 # App memory while a browser uses the dashboard, 100%, one fresh stack (`measure/app_memory.py`)
 
-**The question** (review round 1): benchmark v1 read the app's memory while nobody used the page. Its query phase runs `bench_queries.py` in the loader image, so the app only answered `/_stcore/health` (`measure/predictions.md`, P32). What does the app use while it serves searches?
+**The question** (from our first round of checks): benchmark v1 read the app's memory while nobody used the page. Its query phase runs `bench_queries.py` in the loader image, so the app only answered `/_stcore/health` (`measure/predictions.md`, P32). What does the app use while it serves searches?
 
 **What changed, one thing:** a visitor. The stack, the data (100%, from the extract) and the sampler are the benchmark's; here a real browser uses the page.
 
