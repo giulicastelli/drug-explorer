@@ -1,0 +1,26 @@
+Nested Loop  (cost=2390.00..2592.34 rows=25 width=126) (actual time=0.410..0.470 rows=25 loops=1)
+  Buffers: shared hit=828
+  ->  Limit  (cost=2389.59..2389.65 rows=25 width=58) (actual time=0.408..0.410 rows=25 loops=1)
+        Buffers: shared hit=728
+        ->  Sort  (cost=2389.59..2391.35 rows=707 width=58) (actual time=0.407..0.409 rows=25 loops=1)
+              Sort Key: (count(*)) DESC, labels.substance_key
+              Sort Method: top-N heapsort  Memory: 30kB
+              Buffers: shared hit=728
+              ->  HashAggregate  (cost=2362.57..2369.64 rows=707 width=58) (actual time=0.392..0.397 rows=51 loops=1)
+                    Group Key: labels.substance_key
+                    Batches: 1  Memory Usage: 57kB
+                    Buffers: shared hit=728
+                    ->  Bitmap Heap Scan on labels  (cost=21.08..2351.14 rows=762 width=37) (actual time=0.085..0.303 rows=755 loops=1)
+                          Recheck Cond: (tsv @@ '''migrain'''::tsquery)
+                          Heap Blocks: exact=724
+                          Buffers: shared hit=728
+                          ->  Bitmap Index Scan on labels_tsv_gin  (cost=0.00..20.89 rows=762 width=0) (actual time=0.047..0.047 rows=755 loops=1)
+                                Index Cond: (tsv @@ '''migrain'''::tsquery)
+                                Buffers: shared hit=4
+  ->  Index Scan using drugs_pkey on drugs d  (cost=0.41..8.11 rows=1 width=195) (actual time=0.002..0.002 rows=1 loops=25)
+        Index Cond: (substance_key = labels.substance_key)
+        Buffers: shared hit=100
+Planning:
+  Buffers: shared hit=1
+Planning Time: 0.054 ms
+Execution Time: 0.478 ms

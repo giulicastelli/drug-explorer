@@ -1,0 +1,31 @@
+Sort  (cost=2781.66..2781.72 rows=25 width=118) (actual time=5.517..5.519 rows=20 loops=1)
+  Sort Key: (count(*)) DESC, labels.substance_key
+  Sort Method: quicksort  Memory: 27kB
+  Buffers: shared hit=12773
+  ->  Hash Join  (cost=2663.81..2781.08 rows=25 width=118) (actual time=5.145..5.514 rows=20 loops=1)
+        Hash Cond: (d.substance_key = labels.substance_key)
+        Buffers: shared hit=12773
+        ->  Seq Scan on drugs d  (cost=0.00..107.64 rows=3664 width=150) (actual time=0.002..0.127 rows=3664 loops=1)
+              Buffers: shared hit=71
+        ->  Hash  (cost=2663.49..2663.49 rows=25 width=58) (actual time=5.121..5.121 rows=20 loops=1)
+              Buckets: 1024  Batches: 1  Memory Usage: 10kB
+              Buffers: shared hit=12702
+              ->  Limit  (cost=2663.43..2663.49 rows=25 width=58) (actual time=5.117..5.118 rows=20 loops=1)
+                    Buffers: shared hit=12702
+                    ->  Sort  (cost=2663.43..2663.86 rows=172 width=58) (actual time=5.116..5.117 rows=20 loops=1)
+                          Sort Key: (count(*)) DESC, labels.substance_key
+                          Sort Method: quicksort  Memory: 27kB
+                          Buffers: shared hit=12702
+                          ->  GroupAggregate  (cost=2653.79..2658.58 rows=172 width=58) (actual time=5.098..5.113 rows=20 loops=1)
+                                Group Key: labels.substance_key
+                                Buffers: shared hit=12702
+                                ->  Sort  (cost=2653.79..2654.23 rows=175 width=37) (actual time=5.095..5.099 rows=175 loops=1)
+                                      Sort Key: labels.substance_key
+                                      Sort Method: quicksort  Memory: 33kB
+                                      Buffers: shared hit=12702
+                                      ->  Seq Scan on labels  (cost=0.00..2647.28 rows=175 width=37) (actual time=0.017..5.072 rows=175 loops=1)
+                                            Filter: (tsv @@ '''migrain'''::tsquery)
+                                            Rows Removed by Filter: 20887
+                                            Buffers: shared hit=12702
+Planning Time: 0.065 ms
+Execution Time: 5.528 ms
