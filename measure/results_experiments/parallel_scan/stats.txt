@@ -1,0 +1,9 @@
+step, n, mean, min, max, median (ms)
+client_ms_without_index_default, 9, 90.20, 73.92, 118.54, 83.53
+db_ms_without_index_default, 3, 82.13, 69.66, 90.57, 86.16
+client_ms_without_index_parallel_settings, 9, 43.97, 36.60, 54.36, 40.29
+db_ms_without_index_parallel_settings, 3, 46.80, 36.63, 53.22, 50.54
+client_ms_with_index_default, 9, 1.94, 1.42, 2.27, 2.07
+db_ms_with_index_default, 3, 1.77, 1.35, 2.03, 1.91
+speed-up of parallel settings, without the index: client 2.05x, in the database 1.76x
+speed-up of the index (default settings): client 46.52x, in the database 46.50x
