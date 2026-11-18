@@ -1,0 +1,33 @@
+Sort  (cost=684.36..684.43 rows=25 width=118) (actual time=0.460..0.461 rows=20 loops=1)
+  Sort Key: (count(*)) DESC, labels.substance_key
+  Sort Method: quicksort  Memory: 27kB
+  Buffers: shared hit=244
+  ->  Hash Join  (cost=566.51..683.78 rows=25 width=118) (actual time=0.108..0.457 rows=20 loops=1)
+        Hash Cond: (d.substance_key = labels.substance_key)
+        Buffers: shared hit=244
+        ->  Seq Scan on drugs d  (cost=0.00..107.64 rows=3664 width=150) (actual time=0.001..0.115 rows=3664 loops=1)
+              Buffers: shared hit=71
+        ->  Hash  (cost=566.20..566.20 rows=25 width=58) (actual time=0.086..0.087 rows=20 loops=1)
+              Buckets: 1024  Batches: 1  Memory Usage: 10kB
+              Buffers: shared hit=173
+              ->  Limit  (cost=566.14..566.20 rows=25 width=58) (actual time=0.082..0.084 rows=20 loops=1)
+                    Buffers: shared hit=173
+                    ->  Sort  (cost=566.14..566.57 rows=172 width=58) (actual time=0.082..0.083 rows=20 loops=1)
+                          Sort Key: (count(*)) DESC, labels.substance_key
+                          Sort Method: quicksort  Memory: 27kB
+                          Buffers: shared hit=173
+                          ->  HashAggregate  (cost=559.56..561.28 rows=172 width=58) (actual time=0.077..0.078 rows=20 loops=1)
+                                Group Key: labels.substance_key
+                                Batches: 1  Memory Usage: 40kB
+                                Buffers: shared hit=173
+                                ->  Bitmap Heap Scan on labels  (cost=13.74..556.94 rows=175 width=37) (actual time=0.017..0.055 rows=175 loops=1)
+                                      Recheck Cond: (tsv @@ '''migrain'''::tsquery)
+                                      Heap Blocks: exact=169
+                                      Buffers: shared hit=173
+                                      ->  Bitmap Index Scan on labels_tsv_gin  (cost=0.00..13.70 rows=175 width=0) (actual time=0.009..0.009 rows=175 loops=1)
+                                            Index Cond: (tsv @@ '''migrain'''::tsquery)
+                                            Buffers: shared hit=4
+Planning:
+  Buffers: shared hit=1
+Planning Time: 0.051 ms
+Execution Time: 0.471 ms

@@ -1,0 +1,4 @@
+# For measure/charts.py only (benchmark.py needs nothing: standard library).
+# Install in a venv on the laptop, never in the repo: see measure/how_to_reproduce.md.
+matplotlib==3.11.2
+pandas==3.0.6

@@ -1,0 +1,21 @@
+Subquery Scan on hits  (cost=512.16..512.42 rows=1 width=102) (actual time=0.653..5.146 rows=20 loops=1)
+  Buffers: shared hit=160
+  ->  Limit  (cost=512.16..512.16 rows=1 width=415) (actual time=0.405..0.418 rows=20 loops=1)
+        Buffers: shared hit=160
+        ->  Sort  (cost=512.16..512.16 rows=1 width=415) (actual time=0.404..0.413 rows=20 loops=1)
+              Sort Key: labels.effective_date DESC NULLS LAST, labels.set_id
+              Sort Method: quicksort  Memory: 88kB
+              Buffers: shared hit=160
+              ->  Bitmap Heap Scan on labels  (cost=13.62..512.15 rows=1 width=415) (actual time=0.076..0.358 rows=36 loops=1)
+                    Recheck Cond: (tsv @@ '''migrain'''::tsquery)
+                    Filter: (substance_key = 'TOPIRAMATE'::text)
+                    Rows Removed by Filter: 124
+                    Heap Blocks: exact=157
+                    Buffers: shared hit=160
+                    ->  Bitmap Index Scan on labels_tsv_gin  (cost=0.00..13.62 rows=160 width=0) (actual time=0.041..0.042 rows=160 loops=1)
+                          Index Cond: (tsv @@ '''migrain'''::tsquery)
+                          Buffers: shared hit=3
+Planning:
+  Buffers: shared hit=1
+Planning Time: 0.245 ms
+Execution Time: 5.311 ms

@@ -1,0 +1,14 @@
+Subquery Scan on hits  (cost=4985.64..4985.91 rows=1 width=102) (actual time=39.342..41.989 rows=20 loops=1)
+  Buffers: shared hit=23215
+  ->  Limit  (cost=4985.64..4985.65 rows=1 width=418) (actual time=39.129..39.135 rows=20 loops=1)
+        Buffers: shared hit=23215
+        ->  Sort  (cost=4985.64..4985.65 rows=1 width=418) (actual time=39.128..39.131 rows=20 loops=1)
+              Sort Key: labels.effective_date DESC NULLS LAST, labels.set_id
+              Sort Method: top-N heapsort  Memory: 80kB
+              Buffers: shared hit=23215
+              ->  Seq Scan on labels  (cost=0.00..4985.63 rows=1 width=418) (actual time=1.403..39.031 rows=71 loops=1)
+                    Filter: ((tsv @@ '''migrain'''::tsquery) AND (substance_key = 'TOPIRAMATE'::text))
+                    Rows Removed by Filter: 38971
+                    Buffers: shared hit=23215
+Planning Time: 0.230 ms
+Execution Time: 42.018 ms

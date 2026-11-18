@@ -1,0 +1,24 @@
+Nested Loop  (cost=9817.51..10019.79 rows=25 width=128) (actual time=98.671..98.870 rows=25 loops=1)
+  Buffers: shared hit=45973 read=1042
+  ->  Limit  (cost=9817.10..9817.16 rows=25 width=59) (actual time=98.644..98.651 rows=25 loops=1)
+        Buffers: shared hit=45873 read=1042
+        ->  Sort  (cost=9817.10..9818.69 rows=636 width=59) (actual time=98.641..98.645 rows=25 loops=1)
+              Sort Key: (count(*)) DESC, labels.substance_key
+              Sort Method: quicksort  Memory: 31kB
+              Buffers: shared hit=45873 read=1042
+              ->  GroupAggregate  (cost=9780.89..9799.15 rows=636 width=59) (actual time=98.351..98.595 rows=48 loops=1)
+                    Group Key: labels.substance_key
+                    Buffers: shared hit=45873 read=1042
+                    ->  Sort  (cost=9780.89..9782.59 rows=680 width=38) (actual time=98.325..98.370 rows=680 loops=1)
+                          Sort Key: labels.substance_key
+                          Sort Method: quicksort  Memory: 60kB
+                          Buffers: shared hit=45873 read=1042
+                          ->  Seq Scan on labels  (cost=0.00..9748.90 rows=680 width=38) (actual time=0.517..97.844 rows=680 loops=1)
+                                Filter: (tsv @@ '''migrain'''::tsquery)
+                                Rows Removed by Filter: 77792
+                                Buffers: shared hit=45873 read=1042
+  ->  Index Scan using drugs_pkey on drugs d  (cost=0.41..8.11 rows=1 width=200) (actual time=0.008..0.008 rows=1 loops=25)
+        Index Cond: (substance_key = labels.substance_key)
+        Buffers: shared hit=100
+Planning Time: 0.314 ms
+Execution Time: 98.950 ms
