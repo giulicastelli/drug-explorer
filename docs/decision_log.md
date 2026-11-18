@@ -21,7 +21,7 @@ Format: **D-n, topic** → decision, alternatives, reason. "Judgement" marks rea
 
 **D-8, Which labels, which names.** → a label is kept when it has a non-empty "Indications and usage" and an ingredient name: `openfda.substance_name`, or `openfda.generic_name` when the substance is missing (1,476 labels). Dropped and counted in `pipeline_timings.detail` and `load_info`: no indications 11,921; no name 172,514 (69.1% of the export has no `openfda` block, research counts in `docs/evidence/fp_sample.md` section 4); 262,907 read [M], the same as the research count. `substance_key` = the sorted, upper-case, whitespace-normalised substance names joined with " + " (not the generic name, which has spelling variants). `product_type`: "HUMAN PRESCRIPTION DRUG" → Rx, "HUMAN OTC DRUG" → OTC, anything else in title case ("Cellular Therapy", 18 labels). One label has an `effective_time` that is not a date (stored NULL) and one is dated 2026-11-23, after the export [M]; both are kept.
 
-## Database and queries (Role B)
+## Database and queries
 
 **D-9, The stored tsvector: generated during COPY, not added after.** → `tsv TSVECTOR GENERATED ALWAYS AS (to_tsvector('english', indications)) STORED`. Alternative: COPY without the column, then `ALTER TABLE ... ADD COLUMN tsv ... STORED` (one rewrite of the table), kept as `TSV_MODE=after` for this measurement. Measured at 25% on a fresh volume, one load at a time, order generated, after, generated, (two more generated loads), after [M]:
 
@@ -30,11 +30,11 @@ Format: **D-n, topic** → decision, alternatives, reason. "Judgement" marks rea
 | generated | 2.99 / 3.52 / 2.85 / 2.79 s | — | 0.00-0.05 s | 2.79-3.52 s | 17,891,328 bytes |
 | after | 0.34 / 0.35 s | 2.78 / 2.88 s | 0.04 / 0.05 s | 3.16 / 3.28 s | 17,825,792 bytes |
 
-The two cost the same within the spread of the generated runs: the work is the same (stem every label once), done during COPY or in one pass after it. COPY alone is 8-10× faster without the column (0.34-0.35 s against 2.79-3.52 s): 87-90% of the load is `to_tsvector`, not moving rows (arithmetic on the rows above). We keep `generated`: one table definition, nothing dropped and added back, and a row can never exist without its words. Evidence: `docs/evidence/core_pipeline_timings_25pct.txt` (generated), `docs/evidence/core_tsv_after_25pct.txt` (second after run; the first after run and the first generated run are in the terminal log only, their volumes were deleted). Not 3 runs each with a protocol: Role E can repeat it if it goes into the README.
+The two cost the same within the spread of the generated runs: the work is the same (stem every label once), done during COPY or in one pass after it. COPY alone is 8-10× faster without the column (0.34-0.35 s against 2.79-3.52 s): 87-90% of the load is `to_tsvector`, not moving rows (arithmetic on the rows above). We keep `generated`: one table definition, nothing dropped and added back, and a row can never exist without its words. Evidence: `docs/evidence/core_pipeline_timings_25pct.txt` (generated), `docs/evidence/core_tsv_after_25pct.txt` (second after run; the first after run and the first generated run are in the terminal log only, their volumes were deleted). Not 3 runs each with a protocol: the measurements part can repeat it if it goes into the README.
 
 **D-10, One GIN index on `tsv`, built after COPY.** → `sql/indexes.sql`; the loader drops it before TRUNCATE and builds it after COMMIT, so COPY does not update it row by row. Build 0.30-0.46 s at 25%, 1.49 s at 100%; size 3.4 MB at 25%, 11.5 MB at 100% (11,501,568 bytes) [M]. `CREATE_INDEX=0` loads without it, for the comparison. Only one index: `set_id` has its primary key (3.3 MB at 100%) and `drugs.substance_key` too.
 
-**D-11, The queries.** → `phraseto_tsquery('english', condition)`: the same stemming as the stored column ("migraines" finds "migraine"), and the words must be in order and next to each other ("type 2 diabetes"). `drugs_for_condition` groups the matching labels first and joins only the 25 groups with `drugs` (reduce first, join after). `labels_for_drug` limits to 20 rows before `ts_headline`, which re-reads the whole text of each row it is given. `drugs_for_condition_on_the_fly` computes `to_tsvector` on every row and cannot use the index: at 100%, 3,266 ms in EXPLAIN ANALYZE (3,962 ms timed from Python, one run) against 1.3 ms with the index, and the same 25 rows [M] (`docs/evidence/core_queries_100pct.txt`). What the queries do not do (open for Role C): no synonyms ("high blood pressure" is not "hypertension"); a mention is not a treatment ("cancer": the top 3 at 100% are sunscreens, 1,093 + 1,090 + 563 OTC labels [M]; in 20 random research matches, 15 were false; a rule that removes most of them, and its cost, is in `docs/evidence/fp_sample.md` sections 1-2).
+**D-11, The queries.** → `phraseto_tsquery('english', condition)`: the same stemming as the stored column ("migraines" finds "migraine"), and the words must be in order and next to each other ("type 2 diabetes"). `drugs_for_condition` groups the matching labels first and joins only the 25 groups with `drugs` (reduce first, join after). `labels_for_drug` limits to 20 rows before `ts_headline`, which re-reads the whole text of each row it is given. `drugs_for_condition_on_the_fly` computes `to_tsvector` on every row and cannot use the index: at 100%, 3,266 ms in EXPLAIN ANALYZE (3,962 ms timed from Python, one run) against 1.3 ms with the index, and the same 25 rows [M] (`docs/evidence/core_queries_100pct.txt`). What the queries do not do (open for the dashboard part): no synonyms ("high blood pressure" is not "hypertension"); a mention is not a treatment ("cancer": the top 3 at 100% are sunscreens, 1,093 + 1,090 + 563 OTC labels [M]; in 20 random research matches, 15 were false; a rule that removes most of them, and its cost, is in `docs/evidence/fp_sample.md` sections 1-2).
 
 ## Docker (Role D)
 
@@ -60,7 +60,7 @@ Added with `docs/dataset_decision.md`, `docs/schema.md`, `docs/environment.md` a
 
 **D-18, Cleaning rules, in the loader, while streaming.** → (1) drop a label with no or empty "Indications and usage" (11,921 [M]); (2) drop a label with no ingredient name (172,514 [M]); (3) names upper-cased and whitespace-normalised, then sorted and de-duplicated before joining ("Ibuprofen sodium " → "IBUPROFEN SODIUM"); (4) the indications paragraphs joined with one space, whitespace normalised (the text keeps its "1 INDICATIONS AND USAGE" heading: harmless for the search, visible in snippets); (5) `effective_time` parsed as a date, NULL if invalid (1 label [M]); (6) a date in the future kept (2026-11-23, 1 label [M]): it is what the FDA published. Every drop is counted in `pipeline_timings.detail` and `load_info`. Alternative: load everything and filter in SQL (rejected: 70% of the labels could never answer the question; "filter and select early"). Judgement on (4): removing the section heading was not worth a rule a student has to explain.
 
-### Database and queries (Role B)
+### Database and queries
 
 **D-19, Text search configuration `'english'`.** → `to_tsvector('english', ...)` for the stored column and `phraseto_tsquery('english', ...)` for the query: lower case, English stop words removed, Snowball English stemming ("migraines" and "migraine" → `migrain`; the plans show `'''migrain'''::tsquery`, `core_queries_*.txt` [M]). Alternatives: `'simple'` (no stemming: "migraines" would not find "migraine"); `ILIKE '%migraine%'` (no stemming, no word boundaries, no index of ours can serve it: research measured 927 ms for migraine at 100%, and "depression" 858 labels against 2,652 with full-text search, `docs/evidence/fp_sample.md` section 5). Cost, Judgement: stemming can merge words that differ in meaning, and drug and disease names are not English words (not measured here); the research Python stand-in with the same stemmer gave the same counts as PostgreSQL for 9 of 10 conditions. The configuration must be the same in the column, the index and the query, or the index is not used.
 
@@ -85,11 +85,11 @@ Added with `docs/dataset_decision.md`, `docs/schema.md`, `docs/environment.md` a
 **D-27, The parse is not made faster before the benchmark.** → the benchmark measures the loader as it is: all 14 zips parsed at every size (D-3). Alternatives considered, all left for after the measured runs, because each changes what the 25/50/100% load times mean: (a) a cleaned extract of all buckets cached in `data/` on the first run (the sizes would then read the kept rows, about 13-52 MB of text by prediction, instead of 8.75 GB of JSON); (b) parse the 14 files in parallel, one process per file, on 4 cores (prediction, Judgement: about 3× faster at best, Amdahl, with the memory of 4 parsers); (c) build Python objects only for the kept sections (ijson's tokeniser must still read every byte, so the saving is the dict building only; not measured). Reason: "change one thing at a time"; the serial part is itself a finding to show, not to hide. After the measured runs, (a) was built and measured: D-29.
 
 
-## After the first review round (5 Nov, evening)
+## What we changed and why, first round (5 Nov, evening)
 
-A first review round of the repository found gaps. On the system itself, they asked about choices we had not measured and about failure paths we had never run. We measured them, one change at a time, on branches `fix-review-findings` (merged in `ca5f98e`), `add-experiments` (`7b4c8f5`) and `add-benchmark-v2` (`f856260`). Then we ran the whole benchmark again (v2, `measure/results_v2/`). v1 stays in `measure/results/` and in git as the "before". There was also one comment fix: `sql/schema.sql` now quotes this project's query times, not the research step's (`f5ac020`).
+When we read the whole repository again, we found gaps. On the system itself, some choices had never been measured and some failure paths had never been run. We measured them, one change at a time, and then ran the whole benchmark again (v2, `measure/results_v2/`). v1 stays in `measure/results/` as the "before". There was also one comment fix: `sql/schema.sql` now quotes this project's query times, not the research step's.
 
-### Database and queries (Role B)
+### Database and queries
 
 **D-28, Full-text index: the stored `tsv` column stays; a GIN expression index was measured and rejected.**
 
@@ -118,7 +118,7 @@ The query times are means of 9 (3 loads × 3 repetitions). Both modes give the s
 
 **D-29, Extract cache: the zips are parsed once.** (v2. In v3 the file is named `labels_<export_date>_<clean_version>.csv` (D-43), and a later start no longer needs the zips (D-44).)
 
-- **What the loader does:** on a first start it parses the 14 zips and writes every usable row, all four buckets, once to `data/clean/labels_<export_date>.csv`. The file is written as `.part` and then renamed (`565a0a9`). Later starts read the file (step `read_extract`) and keep the sample's buckets. `EXTRACT_CACHE=0` forces the parse. This builds D-3 (a) and D-27 (a), which were rejected "for now" before the benchmark.
+- **What the loader does:** on a first start it parses the 14 zips and writes every usable row, all four buckets, once to `data/clean/labels_<export_date>.csv`. The file is written as `.part` and then renamed. Later starts read the file (step `read_extract`) and keep the sample's buckets. `EXTRACT_CACHE=0` forces the parse. This builds D-3 (a) and D-27 (a), which were rejected "for now" before the benchmark.
 - **Reason:** the Cost question: every start re-parsed 8.75 GB of JSON to load 54.4 MB of text.
 - **Measured** in benchmark v2 (`measure/results_v2/summary.csv`, means of 3), against v1 (`measure/results/summary.csv`):
 
@@ -145,11 +145,11 @@ The query times are means of 9 (3 loads × 3 repetitions). Both modes give the s
 
 **D-30, One transaction for the whole load, and TCP keepalives on the loader's session.**
 
-- **What changed:** TRUNCATE, COPY, the GIN build, `drugs`, ANALYZE and `load_info` now run in one transaction with one COMMIT. `pipeline_timings` goes in a second, small transaction after it (`372b70b`).
+- **What changed:** TRUNCATE, COPY, the GIN build, `drugs`, ANALYZE and `load_info` now run in one transaction with one COMMIT. `pipeline_timings` goes in a second, small transaction after it.
 - **Why:** v1 committed `labels` before the index and `drugs` were built. A crash in between would leave labels without an index and an empty `drugs` table .
 - **Test** (`docs/evidence/v2_atomic.txt`): after a complete load at 100%, `docker kill` of a new loader during its COPY.
 - **Attempt 1 found a second problem.** PostgreSQL never saw the connection close. The dead session stayed in COPY for 5.5 minutes, holding TRUNCATE's lock, so every read of `labels` waited. `tcp_keepalives_idle = 0` means the OS default, which is 2 hours on Linux.
-- **The fix** (`6bac5f8`): the loader connects with `tcp_keepalives_idle=10`, `tcp_keepalives_interval=5` and `tcp_keepalives_count=3` for its own session.
+- **The fix:** the loader connects with `tcp_keepalives_idle=10`, `tcp_keepalives_interval=5` and `tcp_keepalives_count=3` for its own session.
 - **Attempt 2:**
   - The dead session was gone 25.5 s after the kill, and its work was rolled back.
   - The previous load was complete: 78,472 labels, 8,157 drugs, both indexes, the same md5.
@@ -158,9 +158,9 @@ The query times are means of 9 (3 loads × 3 repetitions). Both modes give the s
 
 **D-31, A missing `tsv` column is added back; other schema changes need `down -v`.**
 
-- **What the loader does:** after TRUNCATE it checks `information_schema`. If `labels` has no `tsv` column (a volume made by an older `schema.sql`, or a column dropped by hand), it logs a line and adds the generated column back before COPY (`a1035cf`). For other schema changes the README says to run `docker compose down -v` first.
+- **What the loader does:** after TRUNCATE it checks `information_schema`. If `labels` has no `tsv` column (a volume made by an older `schema.sql`, or a column dropped by hand), it logs a line and adds the generated column back before COPY. For other schema changes the README says to run `docker compose down -v` first.
 - **Test** (`docs/evidence/v2_self_heal.txt`, at 25%):
-  - **Part 1:** a `TSV_MODE=after` run, then a default run. Both exit 0, and the repair is not needed: `tsv_fill` adds the column back. v1 had the same code (`loader/load_fda.py:313-332` at `09731f7`), so the failure we had suspected, a `tsv` left dropped by an `after` run, does not happen.
+  - **Part 1:** a `TSV_MODE=after` run, then a default run. Both exit 0, and the repair is not needed: `tsv_fill` adds the column back. v1 already had the same code in `loader/load_fda.py`, so the failure we had suspected, a `tsv` left dropped by an `after` run, does not happen.
   - **Part 2:** `tsv` dropped by hand, then a default run. The loader logs "labels has no tsv column ... adding it back before COPY", builds the GIN index and exits 0: migraine 160 labels / 19 ingredients.
   - **What v1 would do in part 2:** fail at `CREATE INDEX` with exit 1 (a prediction from the v1 code, not run).
 - **Alternative:** a migration tool. Rejected for one column of one table (Judgement).
@@ -249,7 +249,7 @@ The query times are means of 9 (3 loads × 3 repetitions). Both modes give the s
 - **Same answer:** `check_same_answer_migraine` = 1 at every size, and migraine gives 680 labels at 100%.
 - **Limit:** the first starts ran after the 3 × 3 series, not interleaved with it, so 81.48 s against v1's 89.74 s is not like for like. Part of the 8.3 s gap may be v1's round-1 slowdown (Judgement, D-37).
 
-### Choices the review found without an alternative
+### Choices that had no alternative written down
 
 **D-39, Output: a Streamlit dashboard, not a static HTML report or a notebook.** offers three outputs: "A dashboard, a report, or a notebook. (Streamlit, Jupyter)".
 
@@ -291,9 +291,9 @@ The query times are means of 9 (3 loads × 3 repetitions). Both modes give the s
   - Both tags are multi-arch with arm64: checked from the cloud VM, not on a Mac (`docs/evidence/arm64_check.txt`).
 - **The VM base image:** on this VM, `python:3.12-slim` is a VM-only variant: the official image plus the proxy's CA bundle, so that pip can verify TLS inside a build (`docs/environment.md`, item 3). The Dockerfiles name the official image, which a laptop pulls. Expected effect on the measurements: none (Judgement, not measured).
 
-## After review round 2 (5 Nov, night)
+## What we changed and why, second round (5 Nov, night)
 
-A second review round of `main` at `b5ecc7c` found two failure paths that the v2 fixes had missed, a cache that could serve old rows, and numbers that were asserted instead of measured. v3 fixed or measured each one, one change per commit, on branch `fix-round2-findings`, merged into `main` as `7032f94` (reviewed by Role D). The benchmark fix and the v3 predictions are on `add-benchmark-v3` (`d794808`, `dcbefbf`). v1 (`measure/results/`) and v2 (`measure/results_v2/`) stay unchanged as the "before"; benchmark v3 writes `measure/results_v3/`. Benchmark v3 has run; its numbers are from `measure/results_v3/summary.csv`.
+A second reading of the whole system found two failure paths that the v2 fixes had missed, a cache that could serve old rows, and numbers that were asserted instead of measured. v3 fixed or measured each one, one change at a time, and the benchmark was fixed and its v3 predictions written before it ran. v1 (`measure/results/`) and v2 (`measure/results_v2/`) stay unchanged as the "before"; benchmark v3 writes `measure/results_v3/`. Benchmark v3 has run; its numbers are from `measure/results_v3/summary.csv`.
 
 ### Data and loading (Role A)
 
@@ -368,12 +368,12 @@ A second review round of `main` at `b5ecc7c` found two failure paths that the v2
   - A second named volume for the zips and the extract. Rejected for the reason of D-25: the user cannot see the files, and `down -v` would delete 1.86 GB of downloads.
 - **Decision:** keep step 4. The README's "Linux, chown skipped" line is updated in the README's own round.
 
-### Database and queries (Role B)
+### Database and queries
 
 **D-49, A reload holds readers for the whole load: measured, not redesigned.**
 
-- **The question** (round 2, Q2): TRUNCATE takes ACCESS EXCLUSIVE on `labels` and holds it until the one commit (D-30, `load_fda.py:467` to `:548`). What does the page do while `docker compose run --rm loader` reloads, and for how long? In round 2 this was "about 13 s (arithmetic on summary.csv, not measured)".
-- **Measured** (`367ed46`, `docs/evidence/v3_reload_lock.py` and `.txt`, at 100%, 2 runs): a probe in the app container runs `drugs_for_condition('migraine', 'all')` every 0.5 s on a new connection while the loader reloads.
+- **The question:** TRUNCATE takes ACCESS EXCLUSIVE on `labels` and holds it until the one commit (D-30, `load_fda.py:467` to `:548`). What does the page do while `docker compose run --rm loader` reloads, and for how long? Before this measurement our answer was "about 13 s (arithmetic on summary.csv, not measured)".
+- **Measured** (`docs/evidence/v3_reload_lock.py` and `.txt`, at 100%, 2 runs): a probe in the app container runs `drugs_for_condition('migraine', 'all')` every 0.5 s on a new connection while the loader reloads.
   - The lock window, from the start of `schema_and_truncate` to the end of `commit` on the loader's clock: 16.190 s and 14.584 s.
   - One read per run waited: 15.800 s and 14.332 s. The probe is one reader, so the next reads queued behind it.
   - Every other read took 17-38 ms.
@@ -383,8 +383,8 @@ A second review round of `main` at `b5ecc7c` found two failure paths that the v2
 
 **D-50, The fixed part of a later start: measured; the healthcheck unchanged.**
 
-- **The question** (round 2, Q5 and finding 17): 4× the data takes 1.82× the time, with 6.65-6.88 s that do not grow. What is in that fixed part, and how much of it is the 3 s healthcheck interval? v2 named "containers, healthcheck, Streamlit" without measuring them.
-- **Measured** (`117a0c0`, `docs/evidence/v3_startup_breakdown.py` and `.txt`): 3 later starts at 100% with the benchmark's protocol, split with `docker events`, the loader's step log and HTTP polled every 0.05 s.
+- **The question:** 4× the data takes 1.82× the time, with 6.65-6.88 s that do not grow. What is in that fixed part, and how much of it is the 3 s healthcheck interval? v2 named "containers, healthcheck, Streamlit" without measuring them.
+- **Measured** (`docs/evidence/v3_startup_breakdown.py` and `.txt`): 3 later starts at 100% with the benchmark's protocol, split with `docker events`, the loader's step log and HTTP polled every 0.05 s.
   - `full_run` 23.62 / 22.14 / 23.76 s; `full_run − pipeline_total` 6.90 / 7.07 / 7.10 s. The 9 phases outside the pipeline add up to the same values within 1 ms: the fixed part is fully attributed.
   - Largest: from db start to db healthy, 3.11 s (44.3%). The database's own log splits it (run 3): ready to accept connections 1.49 s after the start, then 1.60 s more until the first `pg_isready` probe, which Docker runs one interval (3 s) after the container starts.
   - Then Streamlit's start, 1.31 s (18.7%), and db healthy to loader started, 0.59 s (8.4%). The other six phases are each 0.49 s or less.
