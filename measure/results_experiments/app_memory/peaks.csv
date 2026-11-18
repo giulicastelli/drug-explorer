@@ -1,0 +1,7 @@
+service,phase,samples,median_mib,max_mib,max_cpu_perc
+app,idle,40,46.5,52.4,25.5
+app,browser,83,132.7,138.4,123.7
+app,after,40,132.8,135.0,14.3
+db,idle,40,168.1,208.2,93.7
+db,browser,83,216.3,217.8,20.7
+db,after,40,217.3,218.8,8.2
