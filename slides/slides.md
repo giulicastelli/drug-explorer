@@ -150,6 +150,7 @@ So one search is one SQL query.
 
 `docker compose up`
 then http://localhost:8080
+Online: drug-explorer-xi.vercel.app
 
 - **51** ingredients in **752** labels
 - First: topiramate, 146 labels
@@ -203,7 +204,7 @@ This is the limit of the project. We find a word in a text. We do not know wheth
 
 | | 25% | 50% | 100% |
 |---|---|---|---|
-| Labels loaded | 21,063 | 42,019 | 84,381 |
+| Labels loaded | 21,107 | 42,107 | 84,576 |
 | Load, later start | 3.0 s | 5.0 s | 8.4 s |
 | Load, first start | 35.9 s | 37.6 s | 41.2 s |
 | `up` until the page answers, later start | 7.9 s | 10.0 s | 13.2 s |
@@ -212,7 +213,7 @@ This is the limit of the project. We find a word in a text. We do not know wheth
 | Peak memory: loader / db / app (MiB) | 200 / 61 / 41 | 218 / 76 / 41 | 283 / 121 / 41 |
 | Database on disk | 44 MB | 78 MB | 147 MB |
 
-<p class="small">MacBook Pro, Apple M2 Pro, 32 GB of RAM. Docker had 12 CPUs and 7.75 GiB. Mean of 3 runs, each on an empty database. The zips were already on disk.</p>
+<p class="small">MacBook Pro, Apple M2 Pro, 32 GB of RAM. Docker had 12 CPUs and 7.75 GiB. Mean of 3 runs, each on an empty database. The zips were already on disk. Runs of 18 Nov, on the export of that day.</p>
 
 <!--
 1 minute.
@@ -236,6 +237,43 @@ First: loading. Four times the data takes less than three times the time. Most o
 Second, the surprise. On the first start the time is almost the same at every size, because the loader has to read all the zips before it can keep a part. We come back to this in a moment.
 Third: the index. With the index a search takes under a millisecond, whatever the size. Without it PostgreSQL reads every row, so the time grows with the data.
 Fourth: it is small. Everything runs in a few hundred megabytes.
+-->
+
+---
+
+# We built it twice
+
+<div class="cols">
+<div>
+
+**First version, until 18 Nov**
+
+- A Streamlit page and a loader of 549 lines.
+- It worked, and we measured it three times.
+- Going through it for today, we found wrong results, and code that not all of us could explain.
+
+</div>
+<div>
+
+**This version, 18 and 19 Nov**
+
+- The search leaves out "not indicated" sentences.
+- The loader is 232 lines and does the same job.
+- The page is plain HTML on a small server, and it is online.
+- Three pull requests, one for each owner.
+
+</div>
+</div>
+
+<p class="small">The measurements of the first version are still in the repo, as its record. The numbers on these slides are of the new one.</p>
+
+<!--
+1 minute.
+We want to say this openly. What you see today is the second version.
+The first one worked. It had a Streamlit page and a long loader, and we had measured it three times.
+When we went through it for this presentation we found two problems. Some results were wrong, the next slide shows which. And the loader had grown so much that not all of us could explain every part.
+So we changed our mind and rebuilt it in two days. Each of us redid the part they own, in a separate pull request.
+The old measurements no longer describe the code, so we measured again. We kept the old ones in the repo.
 -->
 
 ---

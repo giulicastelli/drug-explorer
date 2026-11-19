@@ -6,6 +6,10 @@ each one, prescription (Rx) or over the counter (OTC).
 
 Group D, Computing Infrastructures for Data Science, LUISS 2026/27.
 
+A public copy of the page is at https://drug-explorer-xi.vercel.app. It is the same page and the
+same queries, with the page on Vercel and the database on Neon. The project is the three
+containers described below.
+
 ## Team
 
 Alessandro D'Amore, Andrea D'Ascanio, Federico Davolos, Giulia Castelli, Giovanni Margiacchi
@@ -107,7 +111,7 @@ Measured on a MacBook Pro with an Apple M2 Pro and 32 GB of RAM. Docker Desktop 
 
 | | 25% | 50% | 100% |
 |---|---|---|---|
-| Labels loaded | 21,063 | 42,019 | 84,381 |
+| Labels loaded | 21,107 | 42,107 | 84,576 |
 | Load, first start | 35.9 s | 37.6 s | 41.2 s |
 | Load, later start | 3.0 s | 5.0 s | 8.4 s |
 | `docker compose up` until the page answers, first start | 40.8 s | 42.4 s | 46.1 s |
@@ -118,6 +122,9 @@ Measured on a MacBook Pro with an Apple M2 Pro and 32 GB of RAM. Docker Desktop 
 | Peak memory, db | 61 MiB | 76 MiB | 121 MiB |
 | Peak memory, app | 41 MiB | 41 MiB | 41 MiB |
 | Database on disk | 44 MB | 78 MB | 147 MB |
+
+The runs are of 18 Nov 2026 and loaded the export of that day, which has 264,929 labels and
+84,576 that we keep. That is 195 more than in the export of 13 Nov described above.
 
 "First start" means the loader reads the zips. "Later start" means it reads the saved CSV. The
 zips were already on disk, so the download is not in these times. Memory is the highest value
@@ -144,8 +151,36 @@ than 600 MB of JSON, because it reads one label at a time. The database is 147 M
 The memory of `db` is the least steady number: at 100% the three runs gave between 106 and 151
 MiB. We ask `docker stats` once a second, so a short peak can be missed.
 
-The measurements of the first version (the Streamlit page), with Giovanni's benchmark, are in
-[measure/README.md](measure/README.md).
+## What we changed, and why
+
+This is the second version of the project. The first one answered the same question with a
+Streamlit page and a loader of 549 lines. It worked, and we measured it three times. When we
+went through it for the presentation we found problems, so on 18 and 19 Nov we rebuilt it.
+
+What was wrong:
+
+- Some results were wrong. ADHD drugs came up under "psychosis", because the search also read
+  the sentences that say what a drug is not for.
+- The loader had grown to 549 lines, with checks that not all of us could explain. Any of us
+  can be asked about any part, so that was a problem too.
+- The page was a Streamlit app. We wanted one we could read line by line and put online.
+
+What we did:
+
+- The search leaves out the "not indicated" sentences. "Psychosis" went from 64 labels to 2.
+- The loader is 232 lines and does the same job: download, keep the usable labels, load them
+  in one transaction, save the kept rows for the next start.
+- The page is a small FastAPI server and plain HTML. It runs the same three queries, suggests
+  81 conditions and symptoms while you type, and it is also online.
+- We did it in three pull requests, one for each owner: the schema (Andrea, #53), the loader and
+  the page (Alessandro, #52), Compose, README and slides (Giulia, #54).
+
+What it cost. The measurements of the first version no longer describe the code, and its
+benchmark does not run on the new loader. We kept them as the record of the first version, in
+[measure/README.md](measure/README.md), and measured the new one again (`measure/rerun`).
+
+What is still wrong. "Cancer" still finds sunscreens. We tried a stricter rule, a treatment
+word within 8 words of the condition, and dropped it. The page says this limit openly.
 
 ## Who did what
 
