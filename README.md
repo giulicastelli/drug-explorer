@@ -38,7 +38,9 @@ quarter of the labels with `SAMPLE_FRACTION=0.25 docker compose up`.
 
 `docker compose down` stops everything and keeps the database. Add `-v` to delete it.
 
-Tested from a clean clone on: [TO FILL IN AFTER THE TESTS: laptop and who].
+Tested from a clean clone on 19 Nov 2026 by Alessandro, on a MacBook Pro (Apple M2 Pro, macOS
+27.2.1) with Docker Desktop 29.8.2. From `docker compose up` to the page it took about 3 minutes
+and 20 seconds, with the build of the two images and the download of the 1.87 GB.
 
 ## Data
 
