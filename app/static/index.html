@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Type a condition and see which active ingredients name it on their FDA label.">
+<title>Which drugs treat this condition?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@800&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip" href="#results">Skip to the results</a>
+
+<header class="bar">
+  <div class="container bar__in">
+    <a class="wordmark" href="./">Drug explorer</a>
+    <nav aria-label="Page">
+      <a href="#method">What this search is</a>
+      <a href="#data">Data</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="desk" aria-labelledby="title">
+    <div class="container">
+      <h1 id="title">Which drugs treat this condition?</h1>
+      <form id="search" class="desk__form" action="./" method="get" role="search">
+        <div class="field">
+          <label for="q">Condition</label>
+          <div class="field__row">
+            <input id="q" name="q" type="search" maxlength="80" autocomplete="off" spellcheck="false" list="suggestions" placeholder="headache, asthma, sore throat" value="migraine">
+            <button class="btn btn--primary" type="submit">Search</button>
+          </div>
+        </div>
+        <fieldset class="seg">
+          <legend>Labels</legend>
+          <label><input type="radio" name="type" value="all" checked><span>All</span></label>
+          <label><input type="radio" name="type" value="Rx"><span>Prescription (Rx)</span></label>
+          <label><input type="radio" name="type" value="OTC"><span>Over the counter (OTC)</span></label>
+        </fieldset>
+      </form>
+      <datalist id="suggestions">
+        <option value="acne">
+        <option value="allergies">
+        <option value="anemia">
+        <option value="angina">
+        <option value="anxiety">
+        <option value="arthritis">
+        <option value="asthma">
+        <option value="atrial fibrillation">
+        <option value="bacterial infections">
+        <option value="bipolar disorder">
+        <option value="bloating">
+        <option value="bronchitis">
+        <option value="cold sores">
+        <option value="common cold">
+        <option value="conjunctivitis">
+        <option value="constipation">
+        <option value="cough">
+        <option value="dandruff">
+        <option value="depression">
+        <option value="diaper rash">
+        <option value="diarrhea">
+        <option value="eczema">
+        <option value="epilepsy">
+        <option value="erectile dysfunction">
+        <option value="fever">
+        <option value="gas">
+        <option value="glaucoma">
+        <option value="gout">
+        <option value="hay fever">
+        <option value="headache">
+        <option value="heart failure">
+        <option value="heartburn">
+        <option value="hemorrhoids">
+        <option value="high blood pressure">
+        <option value="hypertension">
+        <option value="hypothyroidism">
+        <option value="indigestion">
+        <option value="insect bites">
+        <option value="insomnia">
+        <option value="itching">
+        <option value="jock itch">
+        <option value="joint pain">
+        <option value="malaria">
+        <option value="menstrual cramps">
+        <option value="migraine">
+        <option value="motion sickness">
+        <option value="multiple sclerosis">
+        <option value="muscle pain">
+        <option value="muscle spasms">
+        <option value="nasal congestion">
+        <option value="nausea">
+        <option value="obesity">
+        <option value="osteoarthritis">
+        <option value="osteoporosis">
+        <option value="pain">
+        <option value="panic disorder">
+        <option value="pneumonia">
+        <option value="psoriasis">
+        <option value="rash">
+        <option value="rheumatoid arthritis">
+        <option value="ringworm">
+        <option value="runny nose">
+        <option value="schizophrenia">
+        <option value="seizures">
+        <option value="sinusitis">
+        <option value="sleeplessness">
+        <option value="smoking cessation">
+        <option value="sneezing">
+        <option value="sore throat">
+        <option value="stroke">
+        <option value="sunburn">
+        <option value="toothache">
+        <option value="tuberculosis">
+        <option value="type 2 diabetes">
+        <option value="ulcerative colitis">
+        <option value="upset stomach">
+        <option value="urinary tract infections">
+        <option value="vomiting">
+        <option value="warts">
+        <option value="watery eyes">
+        <option value="weight loss">
+      </datalist>
+      <div class="tries">
+        <span id="tries-conditions">Conditions</span>
+        <ul aria-labelledby="tries-conditions">
+          <li><button class="chip" type="button" data-example="migraine">migraine</button></li>
+          <li><button class="chip" type="button" data-example="asthma">asthma</button></li>
+          <li><button class="chip" type="button" data-example="epilepsy">epilepsy</button></li>
+          <li><button class="chip" type="button" data-example="hypertension">hypertension</button></li>
+          <li><button class="chip" type="button" data-example="type 2 diabetes">type 2 diabetes</button></li>
+          <li><button class="chip" type="button" data-example="depression">depression</button></li>
+          <li><button class="chip" type="button" data-example="acne">acne</button></li>
+        </ul>
+      </div>
+      <div class="tries">
+        <span id="tries-symptoms">Symptoms</span>
+        <ul aria-labelledby="tries-symptoms">
+          <li><button class="chip" type="button" data-example="headache">headache</button></li>
+          <li><button class="chip" type="button" data-example="cough">cough</button></li>
+          <li><button class="chip" type="button" data-example="heartburn">heartburn</button></li>
+          <li><button class="chip" type="button" data-example="hay fever">hay fever</button></li>
+          <li><button class="chip" type="button" data-example="sore throat">sore throat</button></li>
+          <li><button class="chip" type="button" data-example="insomnia">insomnia</button></li>
+          <li><button class="chip" type="button" data-example="motion sickness">motion sickness</button></li>
+          <li><button class="chip" type="button" data-example="dandruff">dandruff</button></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="results" class="container results" aria-live="polite" aria-busy="false" tabindex="-1">
+    <noscript>
+      <p class="notice">This page needs JavaScript to ask the database.</p>
+    </noscript>
+    <div id="out"></div>
+  </section>
+
+  <section id="method" class="container method" aria-labelledby="method-h">
+    <h2 id="method-h">What this search is</h2>
+    <div class="method__body">
+      <p>It looks for your words in the “Indications and usage” section of FDA drug labels. “Migraines” also finds “migraine”. It counts a label when the words are there. The one thing it skips is what follows “not indicated”, “not recommended” or “not intended” in a sentence, so a drug does not show up for a condition its label rules out.</p>
+      <p>So a result is a mention, not always a treatment. Search <button class="inline" type="button" data-example="cancer">cancer</button> and the first results are sunscreens, because their labels say “decreases the risk of skin cancer”.</p>
+      <p>Synonyms are not matched either. <button class="inline" type="button" data-example="heart attack">Heart attack</button> and <button class="inline" type="button" data-example="myocardial infarction">myocardial infarction</button> give different lists.</p>
+      <p><strong>Not medical advice.</strong></p>
+    </div>
+  </section>
+</main>
+
+<footer id="data" class="foot">
+  <div class="container foot__in">
+    <div>
+      <h2>Data</h2>
+      <p id="provenance" class="foot__text"></p>
+      <p class="foot__text">The page counts mentions in FDA labels. It does not say that a drug works.</p>
+    </div>
+    <div>
+      <h2 id="run-h">Last load, seconds per step</h2>
+      <div class="scroll">
+        <table id="timings" aria-labelledby="run-h">
+          <thead><tr><th scope="col">Step</th><th scope="col" class="num">Seconds</th><th scope="col" class="num">Rows</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</footer>
+<script src="app.js" defer></script>
+</body>
+</html>
