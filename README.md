@@ -34,7 +34,7 @@ quarter of the labels with `SAMPLE_FRACTION=0.25 docker compose up`.
 
 `docker compose down` stops everything and keeps the database. Add `-v` to delete it.
 
-Tested from a clean clone on: [TO FILL IN AFTER THE TESTS: laptop and who].
+Tested from a clean clone on: Apple MacBook M1 (Giulia), Apple Macbook M4 (Giovanni), Apple Macbook M2 (Alessandro) and a Windows laptop (Federico). 
 
 ## Data
 
