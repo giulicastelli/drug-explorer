@@ -1,50 +1,158 @@
-# Which drugs treat this condition?
+# Drug explorer
 
-Type a condition, for example "migraine", and the page lists the active ingredients whose FDA label names it under "Indications and usage", in how many labels, prescription (Rx) or over the counter (OTC). For migraine: 51 ingredients in 755 labels, led by topiramate, propranolol and divalproex. The page counts mentions, it does not prove that a drug works, and it is not medical advice: many "cancer" labels are sunscreens that "decrease the risk of skin cancer" (`docs/evidence/fp_sample.md`).
+Which drugs treat this condition? Type "migraine" and the page lists the active ingredients
+whose FDA label names migraine under "Indications and usage", with the number of labels for
+each one, prescription (Rx) or over the counter (OTC).
+
+Group D, Computing Infrastructures for Data Science, LUISS 2026/27.
 
 ## Team
-Alessandro D'Amore, Andrea D'Ascanio, Federico Davolos, Giovanni Margiacchi, Giulia Castelli.
+
+Alessandro D'Amore, Andrea D'Ascanio, Federico Davolos, Giulia Castelli, Giovanni Margiacchi
 
 ## How to run
-1. Install Docker Desktop (Mac or Windows) or Docker Engine with Compose (Linux), and start it. You need about 5 GB of free disk and port 8501.
-2. `git clone https://github.com/giulicastelli/drug-explorer` and `cd drug-explorer`
-3. `cp .env.example .env` (it works as it is)
-4. Linux only, if `id -u` does not print 1000: `sudo chown 1000 data`
-5. `docker compose up --build`. The first start downloads 1.9 GB from the FDA, then loads it (about 40-70 s on our laptops).
-6. When the log prints `You can now view your Streamlit app in your browser.`, open http://localhost:8501
 
-Later starts take about 11 s (`docker compose up`). Stop with Ctrl+C, or `docker compose down`; `docker compose down -v` also deletes the database. More: `docs/how_to_run.md`.
-Tested from a clean clone on: MacBook Air M1 8 GB (Giulia), Apple M4 16 GB (Giovanni), a Windows laptop (Federico).
+You need Docker Desktop (Mac or Windows) or Docker Engine with Compose (Linux), running, about
+5 GB of free disk and port 8080 free.
+
+```
+git clone https://github.com/giulicastelli/drug-explorer
+cd drug-explorer
+cp .env.example .env
+docker compose up
+```
+
+On Linux only, if `id -u` does not print 1000, run `sudo chown 1000 data` before
+`docker compose up`: the containers do not run as root, and the loader writes the downloaded
+files in `data`.
+
+When the log prints `Application startup complete`, open http://localhost:8080.
+
+The first start downloads 1.87 GB into `data/raw`, so give it a few minutes. After that the
+files stay there and a start takes about 13 seconds. If you only want a quick look, load a
+quarter of the labels with `SAMPLE_FRACTION=0.25 docker compose up`.
+
+`docker compose down` stops everything and keeps the database. Add `-v` to delete it.
+
+Tested from a clean clone on: [TO FILL IN AFTER THE TESTS: laptop and who].
 
 ## Data
-The openFDA drug label bulk export: manifest https://api.fda.gov/download.json, 14 zip files, no login, licence CC0 1.0 (https://open.fda.gov/license/), no personal data. Export of 17 Nov 2026, as downloaded on 18 Nov: 264,879 labels in 1.88 GB of zips (8.8 GB of JSON), streamed and never unzipped to disk. We keep the 84,363 labels (31.9%) that have both an "Indications and usage" text and an ingredient name. The FDA's manifest is only approximate (`docs/decision_log.md`, D-54). Why this dataset: `docs/dataset_decision.md`.
+
+The labels come from openFDA, the FDA's open data site: 14 zip files listed in
+https://api.fda.gov/download.json. The loader downloads them itself. There is no key and no
+login. The licence is CC0 (https://open.fda.gov/license/), so the data is public domain, and it
+holds no personal data: these are the leaflets that companies file with the FDA.
+
+We used the export of 13 Nov 2026, downloaded on 16 Nov. It has 264,748 labels. We keep 84,381
+of them, the ones with a standard ingredient name and an indications text. The rest cannot
+answer our question. The FDA publishes a new export every week, so a clone run on another day
+can give slightly different counts. The page shows which export it loaded.
+
+[docs/dataset_decision.md](docs/dataset_decision.md) says why we picked this dataset and what
+it cannot tell.
 
 ## Architecture
+
 ![Architecture](docs/architecture.png)
 
-`docker compose up` starts three containers. `db` (PostgreSQL 16) starts first; `loader` (Python) waits until the database is ready, downloads and cleans the labels, loads them in one transaction with a GIN index for the word search, and exits; `app` (Streamlit, the only open port) starts only after a successful load. The containers pass data only through the database. We chose PostgreSQL because, once the loader keeps 13 fields, every label has the same columns, and the work is a word search plus a count per ingredient, which PostgreSQL does with a GIN index (more in `docs/schema.md`).
+`docker compose up` starts three containers.
+
+`db` is PostgreSQL 16. Its files are in a Docker volume, so the data is still there after a
+restart. The other two containers wait until it accepts connections.
+
+`loader` is a Python script that runs once and exits. It downloads the zips, reads the labels
+one at a time (each zip holds a JSON file of more than 600 MB), keeps the usable ones and loads
+them. It also saves the kept rows as one CSV in `data/clean`, so the next start does not have
+to read the zips again.
+
+`app` is the page: a small FastAPI server and plain HTML, CSS and JavaScript. Compose starts it
+only when the loader has finished, and it is the only container with a port open to the laptop.
+
+Both images we build run as a normal user, not as root, and install the exact library versions
+listed in `constraints.txt`, so a build next month gets the same libraries.
+
+We chose PostgreSQL. The raw labels are nested JSON, and at first that made us think of
+MongoDB. But we keep 13 fields per label, the same for all of them, and what we do with them
+is count labels per ingredient. That is a table and a `GROUP BY`. PostgreSQL also has
+full-text search built in, which is what the question needs.
+[docs/schema.md](docs/schema.md) has the tables.
+
+The processing happens in two places. The loader cleans the labels and builds the ingredient
+key ("ACETAMINOPHEN + ASPIRIN + CAFFEINE"). PostgreSQL stores the stemmed words of every
+indications text and indexes them. A search is then one SQL query that finds the labels with
+those words, counts them per ingredient and returns the first 25. The queries are in
+[sql/queries.sql](sql/queries.sql).
+
+On the page you get a search box with suggestions, four totals, the ranked ingredients with a
+bar each, and for the ingredient you select the sentences of its labels that matched.
+
+Labels also say what a drug is not for. ADHD drugs came up under "psychosis", because their
+labels say they are "not intended for" children with psychosis. So before indexing we cut the
+words from "not indicated", "not recommended", "not approved", "not intended", "not used" or
+"not for use" to the end of the sentence. This changes 6,604 of the 84,381 labels. "Psychosis"
+went from 64 labels to 2, and 65 of the 81 conditions the page suggests did not change at all.
+
+One warning. This is still a word search. "Cancer" finds sunscreens first, because their labels
+say "decreases the risk of skin cancer". Do not use it as medical advice.
+
+Our choices, and what we tried and dropped along the way, are in
+[docs/decision_log.md](docs/decision_log.md).
 
 ## Measurements
-Apple M4, 10 cores, 16 GB RAM (7.7 GB for Docker), macOS 27.0.1, Docker 29.8.2. Mean of 3 runs per size; the 25/50/100% samples are fixed subsets of the labels. Script and protocol: `measure/benchmark.py`, `measure/README.md`.
 
-| Measurement | 25% | 50% | 100% | What it means |
-|---|---|---|---|---|
-| Labels loaded | 21,062 | 42,010 | 84,363 | the samples really are 1/4, 1/2 and all |
-| Start, `up` to page ready | 7.1 s | 8.5 s | 11.1 s | 4× the data, 1.6× the time: about 5 s do not grow (database start, Streamlit) |
-| Load into the database | 2.0 s | 3.4 s | 6.1 s | 3× for 4× the data |
-| of which COPY | 1.1 s | 2.2 s | 4.5 s | grows with the data (4.1×): PostgreSQL stems every label |
-| Migraine query, with the GIN index | 0.5 ms | 0.4 ms | 0.5 ms | flat: it reads only the matching labels |
-| Same query, no index | 5.9 ms | 12.5 ms | 27.2 ms | reads every label: 4.6× for 4× the data, 51× slower than with the index |
-| Database on disk | 44 MB | 79 MB | 148 MB | 7.9% of the 1,875 MB of zips |
-| Peak memory loader / db / app | 89 / 67 / 47 MiB | 152 / 98 / 47 MiB | 279 / 162 / 48 MiB | the loader holds the rows until COPY; far below 16 GB |
+Measured on a MacBook Pro with an Apple M2 Pro and 32 GB of RAM. Docker Desktop had 12 CPUs and
+7.75 GiB. Each number is the mean of 3 runs, and every run starts from an empty database.
+`python3 measure/rerun/benchmark.py` runs them all again. The single values are in
+[measure/rerun/results/runs.csv](measure/rerun/results/runs.csv).
 
-First start at 100% (reading the 14 zips instead of the saved extract): 37.7 s, of which 25.9 s reading the zips. Does time double when data doubles? Only for the work on each label (COPY, the query without the index); the whole start does not, because of the fixed part.
+| | 25% | 50% | 100% |
+|---|---|---|---|
+| Labels loaded | 21,063 | 42,019 | 84,381 |
+| Load, first start | 35.9 s | 37.6 s | 41.2 s |
+| Load, later start | 3.0 s | 5.0 s | 8.4 s |
+| `docker compose up` until the page answers, first start | 40.8 s | 42.4 s | 46.1 s |
+| `docker compose up` until the page answers, later start | 7.9 s | 10.0 s | 13.2 s |
+| "migraine" query, with the index | 0.9 ms | 0.8 ms | 0.7 ms |
+| "migraine" query, without the index | 8.2 ms | 19.4 ms | 33.8 ms |
+| Peak memory, loader | 200 MiB | 218 MiB | 283 MiB |
+| Peak memory, db | 61 MiB | 76 MiB | 121 MiB |
+| Peak memory, app | 41 MiB | 41 MiB | 41 MiB |
+| Database on disk | 44 MB | 78 MB | 147 MB |
+
+"First start" means the loader reads the zips. "Later start" means it reads the saved CSV. The
+zips were already on disk, so the download is not in these times. Memory is the highest value
+`docker stats` showed, asked about once a second.
+
+What we read in these numbers.
+
+Loading grows more slowly than the data. With 4 times the labels a later start loads in 2.8
+times the time (3.0 s to 8.4 s), because part of every load does not depend on the size: reading
+the saved CSV takes 0.8 s whatever the sample.
+
+The first start costs the same at every size. Reading the 14 zips takes about 33 s whether we
+keep a quarter of the labels or all of them, since the loader has to look at every label to
+decide. That is why it saves the kept rows: at 100% the start goes from 46.1 s to 13.2 s.
+
+The index is what makes the search fast. With it "migraine" answers in under a millisecond at
+every size. Without it the time doubles when the data doubles, and at 100% it is 49 times
+slower. The index takes 12 MB and 0.8 s to build.
+
+It fits on a normal laptop. The loader never goes over 283 MiB, although each zip holds more
+than 600 MB of JSON, because it reads one label at a time. The database is 147 MB, 7.9% of the
+1.87 GB of zips.
+
+The memory of `db` is the least steady number: at 100% the three runs gave between 106 and 151
+MiB. We ask `docker stats` once a second, so a short peak can be missed.
+
+The measurements of the first version (the Streamlit page), with Giovanni's benchmark, are in
+[measure/README.md](measure/README.md).
 
 ## Who did what
-- **Alessandro D'Amore**, data and loading: loader, dataset choice, dropping the atlas, cleanup, slides.
-- **Andrea D'Ascanio**, database and queries: schema and GIN index, queries, database experiments, decision log.
-- **Federico Davolos**, the page: Streamlit dashboard, README test, screenshots and backup video.
-- **Giulia Castelli**, Docker, README, diagram: repository setup, docker-compose, diagram, the fresh-clone test and the loader fix.
-- **Giovanni Margiacchi**, measurements: benchmark on the laptop, predictions, app memory, how-to-run.
 
-Tools: Python 3.12, ijson, psycopg 3, PostgreSQL 16, Streamlit, altair, pandas, Docker Compose, `docker stats`, matplotlib, Mermaid.
+| Who | Part |
+|---|---|
+| Alessandro D'Amore | Getting the data and loading it, the rewrite of the loader and of the page |
+| Andrea D'Ascanio | The database: tables, index, queries, the decision log |
+| Federico Davolos | The page: the first Streamlit version, testing the new page |
+| Giulia Castelli | Docker, the README, the diagram, the tests from a clean clone |
+| Giovanni Margiacchi | Measurements |

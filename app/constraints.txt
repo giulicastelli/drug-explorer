@@ -1,0 +1,20 @@
+# Lock file: every package in the app image, with its exact version (direct and indirect).
+# Made on 19 Nov 2026 by installing app/requirements.txt in python:3.12-slim and running pip freeze.
+# Used in app/Dockerfile: pip install -r requirements.txt -c constraints.txt
+# To update: change requirements.txt, install it in a clean python:3.12-slim, run pip freeze again.
+annotated-doc==0.0.7
+annotated-types==0.8.0
+anyio==4.16.0
+click==8.5.1
+fastapi==0.163.2
+h11==0.16.0
+idna==3.20
+opentelemetry-api==1.45.2
+psycopg==3.3.6
+psycopg-binary==3.3.6
+pydantic==2.14.3
+pydantic_core==2.50.4
+starlette==1.10.0
+typing-inspection==0.4.5
+typing_extensions==4.16.0
+uvicorn==0.54.0
