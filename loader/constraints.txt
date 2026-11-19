@@ -1,0 +1,8 @@
+# Lock file: every package in the loader image, with its exact version (direct and indirect).
+# Made on 19 Nov 2026 by installing loader/requirements.txt in python:3.12-slim and running pip freeze.
+# Used in loader/Dockerfile: pip install -r requirements.txt -c constraints.txt
+# To update: change requirements.txt, install it in a clean python:3.12-slim, run pip freeze again.
+ijson==3.6.0
+psycopg==3.3.6
+psycopg-binary==3.3.6
+typing_extensions==4.16.0
