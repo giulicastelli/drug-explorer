@@ -1,5 +1,8 @@
 """Query benchmark: the main query with the GIN index, without it, and on the fly.
 
+First version only: this script drives the loader and the page as they were until 18 Nov 2026
+(commit d9082a8). The benchmark of the current version is in measure/rerun/.
+
 Runs inside the loader image, after a normal load (the index exists):
     docker compose run --rm --no-deps -e RUN_ID=bench-0.25-r1 loader python bench_queries.py
 

@@ -1,5 +1,7 @@
 # Measurements: v1, v2, v3 and our laptop
 
+**These are the measurements of the first version**: the loader and the Streamlit page as they were until 18 Nov 2026. On 19 Nov we rebuilt the loader, the schema and the page (main README, "What we changed, and why"). The scripts in this folder and `loader/bench_queries.py` drive the first version and do not run on the code of today. To run them again, check out commit `d9082a8`, the last one before the rebuild. The measurements of the current version are in `measure/rerun/`.
+
 The main README keeps seven key numbers. This file has the whole table, the protocol, the verdict rule, the experiments and what we changed after each round of checks. Three benchmarks on the same cloud machine, all kept unchanged, and the same protocol run on our laptop (section "Laptop"):
 
 - **v1** (`measure/results/`): the first loader, which parsed the 14 zips on every start. Predictions: `measure/predictions.md`, written before any result.

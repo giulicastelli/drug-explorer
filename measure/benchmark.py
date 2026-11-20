@@ -1,5 +1,8 @@
 """Benchmark: our measurement protocol, run automatically.
 
+First version only: this script drives the loader and the page as they were until 18 Nov 2026
+(commit d9082a8). The benchmark of the current version is in measure/rerun/.
+
   "Run each test 3 times, report the average. Write down the laptop:
    processor and RAM. Change one thing at a time."
   "Run with 25%, 50% and 100% of the data. Does time double when data doubles?"

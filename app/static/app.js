@@ -149,7 +149,7 @@ async function run() {
   results.setAttribute("aria-busy", "false");
 }
 
-async function provenance() {
+async function provenance(again = true) {
   try {
     const { info: i, timings } = await getJSON("api/info", {});
     $("#provenance").textContent = `openFDA drug labels, export of ${i.export_date}, downloaded on ${i.downloaded_on}. ` +
@@ -158,6 +158,7 @@ async function provenance() {
     $("#timings tbody").innerHTML = timings.map((t) => `<tr><td>${esc(t.step)}</td><td class="num">${esc(t.seconds)}</td><td class="num">${esc(t.rows)}</td></tr>`).join("");
   } catch {
     $("#provenance").textContent = "The database did not answer.";
+    if (again) setTimeout(() => provenance(false), 3000); // one more try, the server may still be starting
   }
 }
 
