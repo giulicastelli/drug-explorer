@@ -130,7 +130,10 @@ The runs are of 18 Nov 2026 and loaded the export of that day, which has 264,929
 
 "First start" means the loader reads the zips. "Later start" means it reads the saved CSV. The
 zips were already on disk, so the download is not in these times. Memory is the highest value
-`docker stats` showed, asked about once a second.
+`docker stats` showed, asked about once a second, and of the two starts we report the higher.
+The database peaks at the first start, when it receives the rows read from the zips (121 MiB at
+100%, 109 MiB at a later start). The loader peaks at a later start, when it reads the whole saved
+CSV into memory (283 MiB, 278 MiB at the first start).
 
 What we read in these numbers.
 
