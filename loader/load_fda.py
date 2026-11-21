@@ -53,8 +53,14 @@ def fetch(url, dest):
         try:
             request = urllib.request.Request(url, headers={"User-Agent": "drug-explorer"})
             with urllib.request.urlopen(request, timeout=120) as response, open(part, "wb") as out:
+                expected = response.headers.get("Content-Length")  # size the FDA server announces
+                received = 0
                 while chunk := response.read(1024 * 1024):
                     out.write(chunk)
+                    received += len(chunk)
+            if expected is not None and received != int(expected):
+                # a dropped connection can end the download early without an error
+                raise ConnectionError(f"received {received:,} of {int(expected):,} bytes")
             part.rename(dest)  # only a complete file gets the real name
             return
         except OSError as error:
