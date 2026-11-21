@@ -177,8 +177,6 @@ What we did:
   in one transaction, save the kept rows for the next start.
 - The page is a small FastAPI server and plain HTML. It runs the same three queries, suggests
   81 conditions and symptoms while you type, and it is also online.
-- We did it in three pull requests, one for each owner: the schema (Andrea, #53), the loader and
-  the page (Alessandro, #52), Compose, README and slides (Giulia, #54).
 
 What it cost. The measurements of the first version no longer describe the code, and its
 benchmark does not run on the new loader. We kept them as the record of the first version, in
@@ -191,8 +189,8 @@ word within 8 words of the condition, and dropped it. The page says this limit o
 
 | Who | Part |
 |---|---|
-| Alessandro D'Amore | Getting the data and loading it, the rewrite of the loader and of the page |
-| Andrea D'Ascanio | The database: tables, index, queries, the decision log |
-| Federico Davolos | The page: the first Streamlit version, testing the new page |
-| Giulia Castelli | Docker, the README, the diagram, the tests from a clean clone |
+| Alessandro D'Amore | Getting the data and loading it |
+| Andrea D'Ascanio | The database: tables, index, queries |
+| Federico Davolos | The page: processing and the final output |
+| Giulia Castelli | Docker, the README, the diagram |
 | Giovanni Margiacchi | Measurements |
