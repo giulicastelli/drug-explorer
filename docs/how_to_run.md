@@ -25,6 +25,8 @@ The images are built on the first `docker compose up`. We did not time the build
   `0.5` loads half. PowerShell: `$env:SAMPLE_FRACTION="0.25"; docker compose up`.
 - **Port 8080 busy:** `APP_PORT=8081 docker compose up`, then http://localhost:8081.
 - **Read the zips again:** `EXTRACT_CACHE=0 docker compose up` does not use the saved CSV.
+- **After an older version:** `git pull`, then `docker compose up --build`. Without
+  `--build` Docker starts the images of the last build, which can be the old page.
 - **Check the count:**
   `docker compose exec db sh -c 'psql -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT count(*) FROM labels"'`
   prints the number the page shows at the bottom.

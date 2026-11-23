@@ -38,6 +38,17 @@ quarter of the labels with `SAMPLE_FRACTION=0.25 docker compose up`.
 
 `docker compose down` stops everything and keeps the database. Add `-v` to delete it.
 
+### If you ran an older version
+
+Get the new code and rebuild the images:
+
+```
+git pull
+docker compose up --build
+```
+
+Without `--build`, Docker reuses the images it built the last time, so you can get the old page instead of the new one.
+
 Tested from a clean clone on: Apple MacBook M1 (Giulia), Apple Macbook M4 (Giovanni), Apple Macbook M2 (Alessandro) and a Windows laptop (Federico).
 On the M2 Pro, on 19 Nov 2026, it took about 3 minutes and 20 seconds from `docker compose up`
 to the page, with the build of the two images and the download of the 1.87 GB.
@@ -135,7 +146,7 @@ The database peaks at the first start, when it receives the rows read from the z
 100%, 109 MiB at a later start). The loader peaks at a later start, when it reads the whole saved
 CSV into memory (283 MiB, 278 MiB at the first start).
 
-What we read in these numbers.
+### What we read in these numbers
 
 Loading grows more slowly than the data. With 4 times the labels a later start loads in 2.8
 times the time (3.0 s to 8.4 s), because part of every load does not depend on the size: reading
