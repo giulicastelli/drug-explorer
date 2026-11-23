@@ -184,7 +184,7 @@ What was wrong:
 What we did:
 
 - The search leaves out the "not indicated" sentences. "Psychosis" went from 64 labels to 2.
-- The loader is 232 lines and does the same job: download, keep the usable labels, load them
+- The loader is 238 lines and does the same job: download, keep the usable labels, load them
   in one transaction, save the kept rows for the next start.
 - The page is a small FastAPI server and plain HTML. It runs the same three queries, suggests
   81 conditions and symptoms while you type, and it is also online.
