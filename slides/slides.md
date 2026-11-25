@@ -61,7 +61,7 @@ Drug explorer. You type a condition, we list the active ingredients whose FDA la
 Alessandro D'Amore, Andrea D'Ascanio, Federico Davolos, Giulia Castelli, Giovanni Margiacchi</p>
 
 <!--
-1 minute.
+0:45, Giulia.
 Our question is one a friend understands: which drugs treat this condition?
 You type a condition, for example migraine. The page lists the active ingredients whose FDA label names migraine in the section "Indications and usage".
 It only reads the labels, so it is not medical advice. We show where it breaks during the demo.
@@ -82,8 +82,10 @@ It only reads the labels, so it is not medical advice. We show where it breaks d
 - We keep a label only if it has a standard ingredient name and an indications text. The others cannot answer the question.
 - For the measurements we load 25%, 50% and 100% of the kept labels.
 
+<p class="small">The FDA publishes a new export every week. The measurements use the export of 18 Nov (84,576 labels kept), and the live demo uses the one on the laptop.</p>
+
 <!--
-2 minutes.
+1:30, Alessandro.
 The data is the openFDA drug label export: the labels that companies file with the FDA. 14 zip files, 1.87 gigabytes.
 The licence is CC0, so anyone can use it, and there is no personal data in it.
 There are about 265 thousand labels. Two in three are of no use to us: they have no standard ingredient name, or no indications text. We keep 84,381.
@@ -97,7 +99,7 @@ We chose openFDA because it was the most comprehensive source, with the most dat
 ![w:1080](../docs/architecture.png)
 
 <!--
-1 minute.
+1:30, Giulia.
 docker compose up starts three containers, in order.
 The database starts first. The loader waits until it is ready, downloads the zips, keeps the usable labels and loads them. Then it stops.
 The page starts only after the loader has finished, so nobody sees a half-empty database.
@@ -129,7 +131,7 @@ The zips stay in a folder on the laptop and the database in a volume, so the sec
 </div>
 
 <!--
-1 minute.
+1:30, Andrea.
 Which database? The raw data is JSON, and we first thought of MongoDB.
 But after cleaning, every label has the same 13 fields, and the work is to group and count. That is what SQL does well.
 PostgreSQL also has full-text search. It stores the words of each text in a reduced form and builds an index on them, like the index at the back of a book.
@@ -162,7 +164,7 @@ Online: drug-explorer-xi.vercel.app
 </div>
 
 <!--
-3 minutes for the demo, live. This slide and the next are the backup if the laptop fails.
+3:00 for slides 5 and 6, Federico, live. This slide and the next are the backup if the laptop fails.
 Show the terminal: docker compose up, the three containers, the loader that finishes.
 Open localhost:8080. Type migraine.
 51 active ingredients, in 752 labels. The first is topiramate, with 146 labels.
@@ -216,7 +218,7 @@ This is the limit of the project. We find a word in a text. We do not know wheth
 <p class="small">MacBook Pro, Apple M2 Pro, 32 GB of RAM. Docker had 12 CPUs and 7.75 GiB. Mean of 3 runs, each on an empty database. The zips were already on disk. Runs of 18 Nov, on the export of that day.</p>
 
 <!--
-1 minute.
+1:00, Giovanni.
 We measured at three sizes, three runs each, on one laptop, always from an empty database.
 Time to load, time of a query, memory of each container, and the size on disk.
 The next slide says what the numbers mean.
@@ -232,7 +234,7 @@ The next slide says what the numbers mean.
 - It all fits on a normal laptop. The loader peaks at 283 MiB and the database is 147 MB, 7.9% of the zips.
 
 <!--
-2 minutes.
+2:00, Giovanni.
 First: loading. Four times the data takes less than three times the time. Most of it is PostgreSQL storing the rows.
 Second, the surprise. On the first start the time is almost the same at every size, because the loader has to read all the zips before it can keep a part. We come back to this in a moment.
 Third: the index. With the index a search takes under a millisecond, whatever the size. Without it PostgreSQL reads every row, so the time grows with the data.
@@ -258,7 +260,7 @@ Fourth: it is small. Everything runs in a few hundred megabytes.
 **This version, 18 and 19 Nov**
 
 - The search leaves out "not indicated" sentences.
-- The loader is 232 lines and does the same job.
+- The loader is 238 lines and does the same job.
 - The page is plain HTML on a small server, and it is online.
 - Three pull requests, one for each owner.
 
@@ -268,7 +270,7 @@ Fourth: it is small. Everything runs in a few hundred megabytes.
 <p class="small">The measurements of the first version are still in the repo, as its record. The numbers on these slides are of the new one.</p>
 
 <!--
-1 minute.
+1:00, Alessandro.
 We want to say this openly. What you see today is the second version.
 The first one worked. It had a Streamlit page and a long loader, and we had measured it three times.
 When we went through it for this presentation we found two problems. Some results were wrong, the next slide shows which. And the loader had grown so much that not all of us could explain every part.
@@ -281,16 +283,16 @@ The old measurements no longer describe the code, so we measured again. We kept 
 # What went wrong
 
 - A quarter of the data took as long as all of it. The loader read all 14 zips and then threw away three labels in four. Now it saves the kept rows after the first read, and a start at 100% went from 46.1 s to 13.2 s.
-- A good download was refused. We compared each zip with the size in the FDA's file list, and that list is off by up to 0.16 MiB. We took the check out.
+- A good download was refused. We compared each zip with the size in the FDA's file list, and that list is off by up to 0.16 MiB. Now the loader compares the bytes it receives with the size the server announces.
 - ADHD drugs came up under "psychosis". Their labels say "not intended for" children with psychosis. Now we cut from "not indicated" to the end of the sentence: 64 labels became 2.
 - "Cancer" finds sunscreens. We did not fix this one. A word search cannot tell "treats" from "prevents", so we say it on the page.
 
 <!--
-2 minutes.
-Three things went wrong.
-One. Our first measurement at 25 percent took almost as long as at 100. We expected a quarter. The loader was reading every zip and throwing away three labels in four. We added a file with the kept rows, and later starts became five times faster.
-Two. The FDA publishes a list of the files with their sizes. We used it to check the downloads. The sizes in the list are rounded and sometimes wrong, so a correct file was refused. We removed that check.
-Three. The sunscreens. This one we could not fix with the tools of this course. We decided to show it instead of hiding it.
+0:50 Alessandro (points 1 and 2), then 0:55 Andrea (points 3 and 4).
+One. A quarter of the data took as long as all of it. The loader read every zip and threw away three labels in four. Now it saves the kept rows, and a start at 100% went from 46 to 13 seconds.
+Two. The sizes in the FDA's file list are off by up to 0.16 MiB, so a good download was refused. We removed that check. Now the loader compares the bytes it receives with the size the server announces.
+Three. ADHD drugs under "psychosis". A small SQL function cuts the "not indicated" sentences before indexing. 64 labels became 2.
+Four. The sunscreens under "cancer". A word search cannot tell treating from preventing, so we say it on the page.
 -->
 
 ---
@@ -303,11 +305,11 @@ Three. The sunscreens. This one we could not fix with the tools of this course. 
 |---|---|
 | Alessandro D'Amore | Getting the data and loading it |
 | Andrea D'Ascanio | The database: tables, index, queries |
-| Federico Davolos | The page |
+| Federico Davolos | The page: processing and the final output |
 | Giulia Castelli | Docker, the README, the diagram |
 | Giovanni Margiacchi | Measurements |
 
 <!--
-2 minutes. Each of us says one sentence on their own part.
+1:00. Each of us says one sentence on their own part, in the order of the table.
 Then questions.
 -->
