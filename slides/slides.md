@@ -3,62 +3,228 @@ marp: true
 paginate: true
 size: 16:9
 title: Drug explorer
+footer: "Drug explorer, Group D"
 ---
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@800&family=Barlow:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap');
+:root {
+  --blue: #2450f0;
+  --blue-deep: #1a37b0;
+  --blue-soft: #e8edfe;
+  --ink: #14171f;
+  --ink-2: #3a3f4c;
+  --muted: #5b6172;
+  --paper: #f9fafc;
+  --paper-2: #f0f2f7;
+  --rule: #d5d9e2;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+}
 section {
   font-family: "Barlow", Helvetica, Arial, sans-serif;
-  font-size: 27px;
+  font-size: 25px;
   line-height: 1.4;
-  padding: 56px 72px;
-  color: #14171f;
-  background: #f9fafc;
+  padding: 64px 72px 70px 72px;
+  color: var(--ink);
+  background: var(--paper);
   justify-content: flex-start;
   place-content: start stretch;
 }
+/* blue band on top of every slide */
+section::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 10px;
+  background: var(--blue);
+}
+/* page number and footer */
+section::after {
+  font-family: var(--display); font-weight: 800; font-size: 20px;
+  color: var(--blue); right: 72px; bottom: 26px; letter-spacing: 0.04em;
+}
+footer {
+  font-family: var(--display); font-weight: 700; font-size: 15px;
+  text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted);
+  left: 72px; bottom: 28px;
+}
+.kicker {
+  font-family: var(--display); font-weight: 700; font-size: 18px;
+  text-transform: uppercase; letter-spacing: 0.16em; color: var(--blue);
+  margin: 0 0 6px 0;
+}
 h1 {
-  font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+  font-family: var(--display);
   font-weight: 800;
-  font-size: 50px;
-  line-height: 1.05;
+  font-size: 54px;
+  line-height: 1.02;
   text-transform: uppercase;
-  margin: 0 0 26px 0;
-  padding-bottom: 14px;
-  border-bottom: 3px solid #14171f;
-  color: #14171f;
+  letter-spacing: -0.005em;
+  margin: 0 0 30px 0;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--rule);
+  color: var(--ink);
+  position: relative;
+}
+h1::after {
+  content: ""; position: absolute; left: 0; bottom: -2px;
+  width: 110px; height: 6px; background: var(--blue);
 }
 strong { font-weight: 600; }
-b.n { font-family: "Barlow Condensed", sans-serif; font-weight: 800; font-size: 76px; line-height: 1; color: #2450f0; display: block; }
-table { display: table; font-size: 23px; border-collapse: collapse; width: 100%; }
-th, td { padding: 8px 12px; border: 0 !important; border-bottom: 1px solid #d5d9e2 !important; text-align: right; background: transparent !important; }
-th:first-child, td:first-child { text-align: left; }
-thead th { border-bottom: 2px solid #14171f !important; font-weight: 600; }
-tr { background: transparent !important; }
-ul { margin: 0; padding-left: 1.1em; }
-li { margin: 10px 0; }
+code { font-family: Menlo, "DejaVu Sans Mono", monospace; font-size: 0.82em; background: var(--paper-2); color: var(--ink); padding: 1px 6px; border-radius: 0; }
+
+/* bullets: blue squares, like the app */
+ul { margin: 0; padding: 0; list-style: none; }
+ul > li { position: relative; padding-left: 28px; margin: 12px 0; }
+ul > li::before { content: ""; position: absolute; left: 0; top: 0.55em; width: 10px; height: 10px; background: var(--blue); }
+ol { margin: 0; padding: 0; list-style: none; counter-reset: step; }
+
 img { display: block; }
-.shot img { border: 1px solid #c9cedb; width: 100%; }
-.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
-.shotcols { display: grid; grid-template-columns: 1.55fr 1fr; gap: 36px; align-items: start; }
-.four { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin: 0 0 30px 0; }
-.four div { padding: 18px 16px 0 0; }
-.small { font-size: 20px; color: #4a5060; }
-section.title { justify-content: center; place-content: center stretch; }
-section.who td, section.who th { text-align: left; }
-section.title h1 { font-size: 84px; border: 0; margin-bottom: 10px; }
-section::after { font-size: 16px; color: #4a5060; }
+.small { font-size: 17px; color: var(--muted); line-height: 1.4; }
+.n { font-family: var(--display); font-weight: 800; line-height: 0.95; color: var(--blue); display: block; letter-spacing: -0.005em; }
+
+/* ---------- title ---------- */
+section.title {
+  background: var(--blue); color: #fff;
+  justify-content: center; place-content: center stretch;
+  padding: 64px 80px;
+}
+section.title::before { background: var(--ink); height: 10px; }
+section.title .brand {
+  position: absolute; top: 46px; left: 80px;
+  font-family: var(--display); font-weight: 800; font-size: 22px;
+  letter-spacing: 0.14em; text-transform: uppercase; color: #fff;
+}
+section.title .brand span { opacity: 0.6; font-weight: 700; }
+section.title h1 {
+  color: #fff; font-size: 104px; line-height: 0.95; border: 0; padding: 0;
+  margin: 0 0 30px 0; max-width: 980px;
+}
+section.title h1::after { display: none; }
+section.title .lead { font-size: 28px; max-width: 900px; color: #fff; margin: 0 0 34px 0; }
+.search { display: flex; width: 640px; height: 62px; margin: 0 0 0 0; box-shadow: 0 0 0 2px #fff; }
+.search .field { flex: 1; background: #fff; color: var(--ink); font-size: 26px; display: flex; align-items: center; padding: 0 22px; }
+.search .field i { display: inline-block; width: 2px; height: 30px; background: var(--blue); margin-left: 3px; font-style: normal; }
+.search .btn { background: var(--ink); color: #fff; font-family: var(--display); font-weight: 800; font-size: 22px; letter-spacing: 0.1em; display: flex; align-items: center; padding: 0 30px; }
+section.title .credits {
+  position: absolute; left: 80px; right: 80px; bottom: 44px;
+  font-size: 18px; line-height: 1.5; color: rgba(255,255,255,0.82);
+  border-top: 1px solid rgba(255,255,255,0.35); padding-top: 14px;
+  }
+section.title .credits b { color: #fff; font-weight: 600; }
+
+section a.repo { display: inline-flex; align-items: center; gap: 14px; margin-top: 26px; color: #fff; text-decoration: none; font-size: 24px; font-weight: 500; }
+a.repo .tagw, a.live .tagw { font-family: var(--display); font-weight: 800; font-size: 16px; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 10px; }
+a.repo .tagw { background: #fff; color: var(--blue); }
+a.repo { border-bottom: 2px solid rgba(255,255,255,0.5); padding-bottom: 4px; }
+section a.live { display: flex; align-items: center; gap: 12px; margin: -6px 0 18px 0; padding: 12px 16px; background: var(--blue); color: #fff; text-decoration: none; font-size: 20px; font-weight: 600; }
+a.live .tagw { background: #fff; color: var(--blue); }
+a.live b { margin-left: auto; font-family: var(--display); font-size: 26px; }
+
+section.end h1 { font-size: 150px; margin-bottom: 26px; }
+.qbox { display: inline-block; align-self: flex-start; background: #fff; color: var(--blue); font-family: var(--display); font-weight: 800; font-size: 54px; text-transform: uppercase; letter-spacing: 0.01em; padding: 8px 28px 6px 28px; line-height: 1.1; }
+
+/* ---------- stats ---------- */
+.four { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; margin: 0 0 34px 0; }
+.stat { background: #fff; border-top: 4px solid var(--blue); padding: 18px 18px 18px 18px; font-size: 20px; line-height: 1.3; color: var(--ink-2); box-shadow: 0 1px 0 var(--rule); }
+.stat .n { font-size: 64px; margin-bottom: 8px; }
+
+/* ---------- figure frame ---------- */
+.frame { background: #fff; border: 1px solid var(--rule); padding: 18px; }
+.frame img { width: 100%; }
+.frame.arch { width: fit-content; padding: 14px; }
+.frame.arch img { width: auto; }
+.center { display: flex; justify-content: center; }
+
+/* ---------- columns ---------- */
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; align-items: start; }
+.shotcols { display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px; align-items: start; }
+.shot { background: #fff; border: 1px solid var(--rule); padding: 8px; box-shadow: 10px 10px 0 var(--blue-soft); }
+.shot img { width: 100%; }
+.label { font-family: var(--display); font-weight: 800; font-size: 26px; text-transform: uppercase; letter-spacing: 0.02em; margin: 0 0 12px 0; }
+
+.steps { display: grid; gap: 14px; }
+.step { display: grid; grid-template-columns: 54px 1fr; gap: 16px; align-items: start; background: #fff; border: 1px solid var(--rule); padding: 14px 18px; font-size: 22px; line-height: 1.35; }
+.step .n { font-size: 54px; }
+
+.cmd { background: var(--ink); color: #fff; font-family: Menlo, "DejaVu Sans Mono", monospace; font-size: 16px; padding: 12px 16px; white-space: nowrap; line-height: 1.55; margin: 0 0 18px 0; }
+.cmd .p { color: #7f9bff; }
+.cmd .c { color: #9aa3b5; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 0 0 14px 0; }
+.pair .stat .n { font-size: 52px; }
+.pair .stat { padding: 12px 16px; }
+.tight li { margin: 6px 0; font-size: 20px; line-height: 1.3; }
+
+.quote { font-family: var(--display); font-weight: 700; font-size: 36px; line-height: 1.1; border-left: 6px solid var(--blue); padding: 4px 0 4px 20px; margin: 0 0 22px 0; color: var(--ink); }
+.warn { background: var(--ink); color: #fff; padding: 16px 20px; font-weight: 600; margin-top: 22px; display: flex; gap: 14px; align-items: center; }
+.warn .ico { font-family: var(--display); font-weight: 800; background: var(--blue); color: #fff; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex: none; }
+
+/* ---------- table ---------- */
+table { display: table; font-size: 21px; border-collapse: collapse; width: 100%; margin-top: -6px; }
+th, td { padding: 8px 14px; border: 0 !important; border-bottom: 1px solid var(--rule) !important; text-align: right; background: transparent !important; font-variant-numeric: tabular-nums; }
+th:first-child, td:first-child { text-align: left; }
+thead th { border-bottom: 2px solid var(--ink) !important; font-family: var(--display); font-weight: 800; font-size: 22px; text-transform: uppercase; letter-spacing: 0.04em; }
+tr { background: transparent !important; }
+section.measure td:last-child, section.measure th:last-child { background: var(--blue-soft) !important; font-weight: 600; }
+section.measure tbody tr:nth-child(5) td { color: var(--blue); font-weight: 700; }
+section.measure tbody tr:nth-child(6) td:not(:first-child) { color: var(--muted); }
+
+section.who table { font-size: 25px; margin-top: 4px; }
+section.who th, section.who td { text-align: left; padding: 10px 18px; }
+section.who thead th { color: #fff; background: var(--blue) !important; border-bottom: 0 !important; font-size: 22px; }
+section.who td:first-child { font-family: var(--display); font-weight: 800; font-size: 27px; text-transform: uppercase; color: var(--ink); width: 38%; letter-spacing: 0.01em; }
+section.who tbody tr:nth-child(even) td { background: var(--blue-soft) !important; }
+section.who .closing { margin-top: 26px; }
+section.who .closing .q { font-size: 52px; }
+
+/* ---------- cards ---------- */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.card { background: #fff; border: 1px solid var(--rule); border-top: 4px solid var(--blue); padding: 20px 24px; font-size: 21.5px; line-height: 1.38; color: var(--ink-2); }
+.card .n { font-size: 54px; margin-bottom: 8px; }
+.card .n small { font-size: 22px; color: var(--muted); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; margin-left: 6px; }
+
+.versions { display: grid; grid-template-columns: 1fr 64px 1fr; align-items: stretch; margin-bottom: 18px; }
+.ver { padding: 24px 28px; font-size: 23.5px; line-height: 1.38; }
+.ver.old { background: var(--paper-2); color: var(--ink-2); border-top: 4px solid #9aa1b1; }
+.ver.new { background: #fff; border: 1px solid var(--rule); border-top: 4px solid var(--blue); }
+.ver .tag { font-family: var(--display); font-weight: 800; font-size: 30px; text-transform: uppercase; letter-spacing: 0.03em; margin: 0 0 4px 0; color: var(--ink); }
+.ver .n { font-size: 68px; margin: 0 0 10px 0; }
+.ver.old .n { color: #8a91a3; }
+.ver .n small { font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-left: 6px; }
+.ver li { margin: 10px 0; }
+.ver.old li::before { background: #9aa1b1; }
+.arrow { display: flex; align-items: center; justify-content: center; font-family: var(--display); font-weight: 800; font-size: 48px; color: var(--blue); }
+
+.issues { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.issue { background: #fff; border: 1px solid var(--rule); padding: 16px 20px; font-size: 19.5px; line-height: 1.34; color: var(--ink-2); display: flex; flex-direction: column; }
+.issue h3 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height: 1.1; text-transform: uppercase; color: var(--ink); margin: 6px 0 8px 0; letter-spacing: 0.01em; }
+.chip { display: inline-block; font-family: var(--display); font-weight: 800; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; padding: 3px 10px; align-self: flex-start; }
+.chip.ok { background: var(--blue); color: #fff; }
+.chip.no { background: var(--ink); color: #fff; }
+.delta { font-family: var(--display); font-weight: 800; font-size: 31px; color: var(--blue); margin-top: auto; padding-top: 8px; }
+
+.team { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-top: 6px; }
+.person { background: #fff; border: 1px solid var(--rule); padding: 18px 16px 20px 16px; font-size: 19px; line-height: 1.32; color: var(--ink-2); }
+.person .ini { width: 64px; height: 64px; background: var(--blue); color: #fff; font-family: var(--display); font-weight: 800; font-size: 30px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+.person.me .ini { background: var(--ink); }
+.person .name { font-family: var(--display); font-weight: 800; font-size: 25px; line-height: 1.02; text-transform: uppercase; color: var(--ink); margin-bottom: 10px; }
+.closing { margin-top: 44px; display: flex; align-items: baseline; gap: 24px; }
+.closing .q { font-family: var(--display); font-weight: 800; font-size: 64px; text-transform: uppercase; color: var(--blue); line-height: 1; }
+.closing .u { font-size: 22px; color: var(--muted); }
 </style>
 
 <!-- _class: title -->
 <!-- _paginate: false -->
+<!-- _footer: "" -->
+
+<div class="brand">Drug explorer</div>
 
 # Which drugs treat this condition?
 
-Drug explorer. You type a condition, we list the active ingredients whose FDA label names it.
+<p class="lead">Drug explorer. You type a condition, we list the active ingredients whose FDA label names it.</p>
 
-<p class="small">Computing Infrastructures for Data Science, group D<br>
-Alessandro D'Amore, Andrea D'Ascanio, Federico Davolos, Giulia Castelli, Giovanni Margiacchi</p>
+<div class="search"><div class="field">migraine<i></i></div><div class="btn">SEARCH</div></div>
+
+<a class="repo" href="https://github.com/giulicastelli/drug-explorer/tree/main"><span class="tagw">Code</span>github.com/giulicastelli/drug-explorer</a>
+
+<div class="credits"><b>Computing Infrastructures for Data Science, group D</b><br>Alessandro D'Amore, Andrea D'Ascanio, Federico Davolos, Giulia Castelli, Giovanni Margiacchi</div>
 
 <!--
 0:45, Giulia.
@@ -69,20 +235,22 @@ It only reads the labels, so it is not medical advice. We show where it breaks d
 
 ---
 
-# The data: every FDA drug label
+<div class="kicker">The data</div>
+
+# Every FDA drug label
 
 <div class="four">
-<div><b class="n">1.87 GB</b>14 zip files from openFDA</div>
-<div><b class="n">264,748</b>labels in the export of 13 Nov 2026</div>
-<div><b class="n">84,381</b>labels we keep</div>
-<div><b class="n">CC0</b>public domain, no personal data</div>
+<div class="stat"><span class="n">1.87 GB</span>14 zip files from openFDA</div>
+<div class="stat"><span class="n">264,748</span>labels in the export of 13 Nov 2026</div>
+<div class="stat"><span class="n">84,381</span>labels we keep</div>
+<div class="stat"><span class="n">CC0</span>public domain, no personal data</div>
 </div>
 
 - The loader downloads the zips by script. No key, no login.
 - We keep a label only if it has a standard ingredient name and an indications text. The others cannot answer the question.
 - For the measurements we load 25%, 50% and 100% of the kept labels.
 
-<p class="small">The FDA publishes a new export every week. The measurements use the export of 18 Nov (84,576 labels kept), and the live demo uses the one on the laptop.</p>
+<p class="small" style="margin-top:22px">The FDA publishes a new export every week. The measurements use the export of 18 Nov (84,576 labels kept), and the live demo uses the one on the laptop.</p>
 
 <!--
 1:30, Alessandro.
@@ -94,9 +262,15 @@ We chose openFDA because it was the most comprehensive source, with the most dat
 
 ---
 
+<div class="kicker">Architecture</div>
+
 # Three containers, one command
 
-![w:1080](../docs/architecture.png)
+<div class="center"><div class="frame arch">
+
+![h:380](../docs/architecture.png)
+
+</div></div>
 
 <!--
 1:30, Giulia.
@@ -108,10 +282,14 @@ The zips stay in a folder on the laptop and the database in a volume, so the sec
 
 ---
 
+<div class="kicker">The database</div>
+
 # Why PostgreSQL
 
 <div class="cols">
 <div>
+
+<div class="label">Not MongoDB</div>
 
 - The raw labels are nested JSON. That points to MongoDB.
 - But we keep 13 fields of each label, so every row has the same columns.
@@ -121,11 +299,13 @@ The zips stay in a folder on the laptop and the database in a volume, so the sec
 </div>
 <div>
 
-**One search is one query**
+<div class="label">One search is one query</div>
 
-1. PostgreSQL stores the stemmed words of each indications text: "migraines" becomes "migrain".
-2. A GIN index says which labels contain a word.
-3. The query finds the labels, counts them per ingredient and returns the top 25.
+<div class="steps">
+<div class="step"><span class="n">1</span><div>PostgreSQL stores the stemmed words of each indications text: "migraines" becomes "migrain".</div></div>
+<div class="step"><span class="n">2</span><div>A GIN index says which labels contain a word.</div></div>
+<div class="step"><span class="n">3</span><div>The query finds the labels, counts them per ingredient and returns the top 25.</div></div>
+</div>
 
 </div>
 </div>
@@ -140,6 +320,8 @@ So one search is one SQL query.
 
 ---
 
+<div class="kicker">Live demo</div>
+
 # Demo: "migraine"
 
 <div class="shotcols">
@@ -150,15 +332,21 @@ So one search is one SQL query.
 </div>
 <div>
 
-`docker compose up`
-then http://localhost:8080
-Online: drug-explorer-xi.vercel.app
+<div class="cmd"><span class="p">$</span> docker compose up<br><span class="c"># then</span> localhost:8080</div>
 
-- **51** ingredients in **752** labels
-- First: topiramate, 146 labels
-- Prescription or over the counter
-- Suggestions while you type
-- Select an ingredient to read what its labels say
+<a class="live" href="https://drug-explorer-xi.vercel.app"><span class="tagw">Live</span>drug-explorer-xi.vercel.app <b>→</b></a>
+
+<div class="pair">
+<div class="stat"><span class="n">51</span>ingredients</div>
+<div class="stat"><span class="n">752</span>labels</div>
+</div>
+
+<ul class="tight">
+<li>First: topiramate, 146 labels</li>
+<li>Prescription or over the counter</li>
+<li>Suggestions while you type</li>
+<li>Select an ingredient to read what its labels say</li>
+</ul>
 
 </div>
 </div>
@@ -174,6 +362,8 @@ Select topiramate: the page shows the sentence of each label that names migraine
 
 ---
 
+<div class="kicker">The limit</div>
+
 # Where it breaks: "cancer"
 
 <div class="shotcols">
@@ -184,11 +374,13 @@ Select topiramate: the page shows the sentence of each label that names migraine
 </div>
 <div>
 
-The first results are sunscreens. Their labels say "decreases the risk of skin cancer".
+<p style="margin:0 0 10px 0">The first results are sunscreens. Their labels say:</p>
 
-The search finds the word. It does not know whether the drug treats the condition or prevents it.
+<div class="quote">"decreases the risk of skin cancer"</div>
 
-Do not use it as medical advice.
+<p style="margin:0">The search finds the word. It does not know whether the drug <strong>treats</strong> the condition or <strong>prevents</strong> it.</p>
+
+<div class="warn"><span class="ico">!</span>Do not use it as medical advice.</div>
 
 </div>
 </div>
@@ -201,6 +393,10 @@ This is the limit of the project. We find a word in a text. We do not know wheth
 -->
 
 ---
+
+<!-- _class: measure -->
+
+<div class="kicker">Results</div>
 
 # Measurements
 
@@ -215,7 +411,7 @@ This is the limit of the project. We find a word in a text. We do not know wheth
 | Peak memory: loader / db / app (MiB) | 200 / 61 / 41 | 218 / 76 / 41 | 283 / 121 / 41 |
 | Database on disk | 44 MB | 78 MB | 147 MB |
 
-<p class="small">MacBook Pro, Apple M2 Pro, 32 GB of RAM. Docker had 12 CPUs and 7.75 GiB. Mean of 3 runs, each on an empty database. The zips were already on disk. Runs of 18 Nov, on the export of that day.</p>
+<p class="small" style="margin-top:14px">MacBook Pro, Apple M2 Pro, 32 GB of RAM. Docker had 12 CPUs and 7.75 GiB. Mean of 3 runs, each on an empty database. The zips were already on disk. Runs of 18 Nov, on the export of that day.</p>
 
 <!--
 1:00, Giovanni.
@@ -226,12 +422,16 @@ The next slide says what the numbers mean.
 
 ---
 
+<div class="kicker">Results</div>
+
 # What the numbers mean
 
-- Loading grows more slowly than the data. With 4 times the labels it takes about 2.8 times as long.
-- The first start is as slow with a quarter of the data as with all of it. Reading the 14 zips takes about 33 s whatever we keep. That is why we save the kept rows in a CSV.
-- With the index a search takes under a millisecond at every size. Without it the time doubles when the data doubles, and at 100% it is about 49 times slower.
-- It all fits on a normal laptop. The loader peaks at 283 MiB and the database is 147 MB, 7.9% of the zips.
+<div class="grid2">
+<div class="card"><span class="n">2.8×<small>for 4× the labels</small></span>Loading grows more slowly than the data. With 4 times the labels it takes about 2.8 times as long.</div>
+<div class="card"><span class="n">33 s<small>to read the zips</small></span>The first start is as slow with a quarter of the data as with all of it. Reading the 14 zips takes about 33 s whatever we keep. That is why we save the kept rows in a CSV.</div>
+<div class="card"><span class="n">&lt; 1 ms<small>with the index</small></span>With the index a search takes under a millisecond at every size. Without it the time doubles when the data doubles, and at 100% it is about 49 times slower.</div>
+<div class="card"><span class="n">147 MB<small>on disk</small></span>It all fits on a normal laptop. The loader peaks at 283 MiB and the database is 147 MB, 7.9% of the zips.</div>
+</div>
 
 <!--
 2:00, Giovanni.
@@ -245,29 +445,27 @@ Fourth: it is small. Everything runs in a few hundred megabytes.
 
 # We built it twice
 
-<div class="cols">
-<div>
-
-**First version, until 18 Nov**
-
-- A Streamlit page and a loader of 549 lines.
-- It worked, and we measured it three times.
-- Going through it for today, we found wrong results, and code that not all of us could explain.
-
+<div class="versions">
+<div class="ver old">
+<div class="tag">First version</div>
+<span class="n">549<small>lines of loader</small></span>
+<ul>
+<li>A Streamlit page and a loader of 549 lines.</li>
+<li>It worked, and we measured it three times.</li>
+<li>Going through it for today, we found wrong results, and code that not all of us could explain.</li>
+</ul>
 </div>
-<div>
-
-**This version, 18 and 19 Nov**
-
-- The search leaves out "not indicated" sentences.
-- The loader is 238 lines and does the same job.
-- The page is plain HTML on a small server, and it is online.
-- Three pull requests, one for each owner.
-
+<div class="arrow">→</div>
+<div class="ver new">
+<div class="tag">This version</div>
+<span class="n">238<small>lines of loader</small></span>
+<ul>
+<li>The search leaves out "not indicated" sentences.</li>
+<li>The loader is 238 lines and does the same job.</li>
+<li>The page is plain HTML on a small server, and it is online.</li>
+</ul>
 </div>
 </div>
-
-<p class="small">The measurements of the first version are still in the repo, as its record. The numbers on these slides are of the new one.</p>
 
 <!--
 1:00, Alessandro.
@@ -282,10 +480,12 @@ The old measurements no longer describe the code, so we measured again. We kept 
 
 # What went wrong
 
-- A quarter of the data took as long as all of it. The loader read all 14 zips and then threw away three labels in four. Now it saves the kept rows after the first read, and a start at 100% went from 46.1 s to 13.2 s.
-- A good download was refused. We compared each zip with the size in the FDA's file list, and that list is off by up to 0.16 MiB. Now the loader compares the bytes it receives with the size the server announces.
-- ADHD drugs came up under "psychosis". Their labels say "not intended for" children with psychosis. Now we cut from "not indicated" to the end of the sentence: 64 labels became 2.
-- "Cancer" finds sunscreens. We did not fix this one. A word search cannot tell "treats" from "prevents", so we say it on the page.
+<div class="issues">
+<div class="issue"><span class="chip ok">Fixed</span><h3>A quarter of the data took as long as all of it</h3>The loader read all 14 zips and then threw away three labels in four. Now it saves the kept rows after the first read.<div class="delta">46.1 s → 13.2 s <span class="small">start at 100%</span></div></div>
+<div class="issue"><span class="chip ok">Fixed</span><h3>A good download was refused</h3>We compared each zip with the size in the FDA's file list, and that list is off by up to 0.16 MiB. Now the loader compares the bytes it receives with the size the server announces.</div>
+<div class="issue"><span class="chip ok">Fixed</span><h3>ADHD drugs came up under "psychosis"</h3>Their labels say "not intended for" children with psychosis. Now we cut from "not indicated" to the end of the sentence.<div class="delta">64 → 2 <span class="small">labels</span></div></div>
+<div class="issue"><span class="chip no">Not fixed</span><h3>"Cancer" finds sunscreens</h3>We did not fix this one. A word search cannot tell "treats" from "prevents", so we say it on the page.</div>
+</div>
 
 <!--
 0:50 Alessandro (points 1 and 2), then 0:55 Andrea (points 3 and 4).
@@ -298,6 +498,8 @@ Four. The sunscreens under "cancer". A word search cannot tell treating from pre
 ---
 
 <!-- _class: who -->
+
+<div class="kicker">The team</div>
 
 # Who did what
 
@@ -312,4 +514,22 @@ Four. The sunscreens under "cancer". A word search cannot tell treating from pre
 <!--
 1:00. Each of us says one sentence on their own part, in the order of the table.
 Then questions.
+-->
+
+---
+
+<!-- _class: title end -->
+<!-- _paginate: false -->
+<!-- _footer: "" -->
+
+<div class="brand">Drug explorer</div>
+
+# Thank you!
+
+<div class="qbox">Questions?</div>
+
+<div class="credits"><b>Computing Infrastructures for Data Science, group D</b><br>Alessandro D'Amore, Andrea D'Ascanio, Federico Davolos, Giulia Castelli, Giovanni Margiacchi</div>
+
+<!--
+Giulia: "Thank you. We are happy to answer your questions."
 -->
